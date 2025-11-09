@@ -6,17 +6,31 @@
 
 本项目应用了多种机器学习算法来分析电影数据，包括：
 
-1. **推荐系统**：基于 SVD (奇异值分解) 的协同过滤
+1. **推荐系统**：
+   - 基于 SVD (奇异值分解) 的协同过滤 (基线)
+   - 基于 PageRank 和协同过滤的图推荐系统 ⭐ NEW
+   - 混合推荐系统 (SVD + PageRank) ⭐ NEW
 2. **聚类算法**：K-means 和层次聚类
 3. **降维算法**：PCA (主成分分析)
 
 ## 主要功能
 
 ### 1. 推荐系统
-- 实现基于矩阵分解 (SVD) 的协同过滤算法
-- 为用户生成个性化电影推荐
-- 查找相似电影
-- 评估推荐质量（MAE, RMSE）
+- **SVD 协同过滤** (基线方法)
+  - 基于矩阵分解的协同过滤算法
+  - 为用户生成个性化电影推荐
+  - 查找相似电影
+- **PageRank 图推荐系统** ⭐ NEW
+  - 构建用户-电影二分图
+  - 应用 PageRank 算法计算电影重要性
+  - 结合余弦相似度协同过滤
+  - 混合评分机制
+- **混合推荐系统** ⭐ NEW
+  - 融合 SVD 和 PageRank 的优势
+  - 可调节权重参数
+  - 更稳定的推荐性能
+- **评估指标**：MAE, RMSE
+- **消融实验**：系统性对比不同推荐方法 ⭐ NEW
 
 ### 2. 聚类分析
 - 使用 K-means 和层次聚类对电影进行分组
@@ -36,19 +50,27 @@
 
 ```
 DSA5101/
-├── main.py                  # 主程序入口
-├── requirements.txt         # Python 依赖包
-├── download_data.sh         # 数据下载脚本
-├── README.md               # 项目说明文档
+├── main.py                          # 主程序入口
+├── ablation_study.py                # 消融实验脚本 ⭐ NEW
+├── requirements.txt                 # Python 依赖包
+├── download_data.sh                 # 数据下载脚本
+├── README.md                        # 项目说明文档
+├── GRAPH_RECOMMENDATION_README.md   # 图推荐系统文档 ⭐ NEW
+├── USAGE.md                         # 使用说明
 ├── src/
-│   ├── data_loader.py      # 数据加载和预处理
-│   ├── recommender.py      # 推荐系统实现
-│   ├── clustering.py       # 聚类算法实现
-│   └── visualization.py    # 可视化工具
-├── data/                   # 数据目录
-│   └── ml-20m/            # MovieLens 20M 数据集
-├── figures/                # 生成的图表
-└── results/                # 分析结果
+│   ├── data_loader.py               # 数据加载和预处理
+│   ├── recommender.py               # 推荐系统 (3种算法) ⭐ UPDATED
+│   │   ├── SVDRecommender           # SVD 基线
+│   │   ├── PageRankRecommender      # PageRank + CF ⭐ NEW
+│   │   └── HybridRecommender        # 混合推荐 ⭐ NEW
+│   ├── clustering.py                # 聚类算法实现
+│   └── visualization.py             # 可视化工具
+├── notebooks/
+│   └── quick_demo.ipynb             # 快速演示
+├── data/                            # 数据目录
+│   └── ml-20m/                      # MovieLens 20M 数据集
+├── figures/                         # 生成的图表
+└── results/                         # 分析结果
 ```
 
 ## 数据集
@@ -98,15 +120,27 @@ python main.py
 
 程序将依次执行：
 1. 数据加载和预处理
-2. 推荐系统训练和评估
+2. 推荐系统训练和评估 (SVD + PageRank + 混合推荐) ⭐ UPDATED
 3. 聚类分析（K-means vs 层次聚类）
 4. 降维分析（PCA 对聚类的影响）
+
+**运行消融实验** (对比不同推荐系统): ⭐ NEW
+```bash
+python ablation_study.py
+```
+
+消融实验将：
+- 系统性对比 SVD、PageRank、混合推荐的性能
+- 测试不同参数配置的影响
+- 生成详细的性能报告和可视化
 
 运行完成后，所有可视化结果将保存到 `figures/` 目录。
 
 ## 算法详解
 
-### 1. SVD 协同过滤
+### 1. 推荐系统算法
+
+#### 1.1 SVD 协同过滤 (基线)
 
 使用奇异值分解 (SVD) 对用户-电影评分矩阵进行降维：
 
@@ -125,7 +159,45 @@ R ≈ U × Σ × V^T
 - 捕捉潜在特征
 - 计算效率高
 
-### 2. K-means 聚类
+#### 1.2 PageRank 图推荐系统 ⭐ NEW
+
+结合图结构和协同过滤的推荐算法：
+
+**步骤：**
+1. 构建用户-电影二分图 (G = (U ∪ M, E))
+2. 应用 PageRank 算法：
+   ```
+   PR(v) = (1-α)/N + α × Σ(PR(u)/L(u))
+   ```
+   其中 α = 0.85 (阻尼系数)
+
+3. 计算协同过滤分数 (余弦相似度)
+4. 混合评分：
+   ```
+   score = cf_weight × CF_score + (1 - cf_weight) × PR_score
+   ```
+
+**优点：**
+- 利用图结构捕获电影的全局重要性
+- 结合协同过滤提供个性化推荐
+- 考虑了网络中的间接关系
+
+#### 1.3 混合推荐系统 ⭐ NEW
+
+融合 SVD 和 PageRank 的优势：
+
+```
+final_score = svd_weight × SVD_score + (1 - svd_weight) × PageRank_score
+```
+
+**优点：**
+- 结合矩阵分解和图算法的优势
+- 更稳定的推荐性能
+- 可调节权重平衡两种方法
+
+### 2. 聚类算法
+
+#### 2.1 K-means 聚类
 
 通过迭代优化将电影分配到 k 个聚类中：
 
