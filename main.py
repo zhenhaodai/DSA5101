@@ -11,7 +11,7 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from src.data_loader import MovieLensLoader
-from src.recommender import SVDRecommender
+from src.recommender import SVDRecommender, PageRankRecommender, HybridRecommender
 from src.clustering import MovieClusterer, DimensionalityReducer
 from src.visualization import Visualizer
 import pandas as pd
@@ -27,7 +27,7 @@ def main():
     print("=" * 80)
     print("\n本项目将依次执行以下分析：")
     print("1. 数据加载和预处理")
-    print("2. 推荐系统（SVD 协同过滤）")
+    print("2. 推荐系统（SVD 基线 + PageRank + 混合推荐）")
     print("3. 电影聚类分析（K-means vs 层次聚类）")
     print("4. 降维分析（PCA 对聚类效果的影响）")
     print("\n" + "=" * 80)
@@ -64,46 +64,112 @@ def main():
         min_movie_ratings=50
     )
 
-    # 训练推荐模型
-    recommender = SVDRecommender(n_components=50)
-    recommender.fit(user_movie_matrix)
-
-    # 评估推荐系统
-    # 使用 80/20 分割
+    # 评估推荐系统 - 使用 80/20 分割
     train_size = int(len(filtered_ratings) * 0.8)
     train_ratings = filtered_ratings.iloc[:train_size]
     test_ratings = filtered_ratings.iloc[train_size:]
 
-    # 重新训练（使用训练集）
+    # 创建训练矩阵
     train_matrix = train_ratings.pivot_table(
         index='userId',
         columns='movieId',
         values='rating',
         fill_value=0
     )
-    recommender.fit(train_matrix)
 
-    # 评估
-    metrics = recommender.evaluate(test_ratings)
+    # 2.1 训练 SVD 基线模型
+    print("\n训练 SVD 基线模型...")
+    svd_recommender = SVDRecommender(n_components=50)
+    svd_recommender.fit(train_matrix)
+    svd_metrics = svd_recommender.evaluate(test_ratings)
 
-    # 展示推荐示例
-    print("\n推荐示例：")
-    sample_users = user_movie_matrix.index[:5]
-    for user_id in sample_users:
-        recommendations = recommender.recommend_for_user(user_id, top_n=5)
-        print(f"\n用户 {user_id} 的推荐电影:")
-        for movie_id, score in recommendations[:3]:
-            movie_info = loader.get_movie_info([movie_id])
-            if len(movie_info) > 0:
-                title = movie_info.iloc[0]['title']
-                print(f"  - {title} (预测评分: {score:.2f})")
+    # 2.2 训练 PageRank 推荐模型
+    print("\n训练 PageRank + 协同过滤模型...")
+    pagerank_recommender = PageRankRecommender(alpha=0.85, cf_weight=0.5)
+    pagerank_recommender.fit(train_matrix)
+    pr_metrics = pagerank_recommender.evaluate(test_ratings)
+
+    # 2.3 训练混合推荐模型
+    print("\n训练混合推荐模型 (SVD + PageRank)...")
+    hybrid_recommender = HybridRecommender(
+        svd_recommender=svd_recommender,
+        pagerank_recommender=pagerank_recommender,
+        svd_weight=0.5
+    )
+    hybrid_metrics = hybrid_recommender.evaluate(test_ratings)
+
+    # 对比不同推荐系统的性能
+    print("\n\n推荐系统性能对比:")
+    print("-" * 80)
+    comparison_data = pd.DataFrame({
+        '模型': ['SVD (基线)', 'PageRank + CF', '混合推荐'],
+        'MAE': [svd_metrics['MAE'], pr_metrics['MAE'], hybrid_metrics['MAE']],
+        'RMSE': [svd_metrics['RMSE'], pr_metrics['RMSE'], hybrid_metrics['RMSE']]
+    })
+    print(comparison_data.to_string(index=False))
+
+    # 展示推荐示例对比
+    print("\n\n推荐示例对比:")
+    print("-" * 80)
+    sample_user = train_matrix.index[10]
+    print(f"\n为用户 {sample_user} 生成推荐:\n")
+
+    # SVD 推荐
+    svd_recs = svd_recommender.recommend_for_user(sample_user, top_n=5)
+    print("SVD 基线推荐:")
+    for i, (movie_id, score) in enumerate(svd_recs, 1):
+        movie_info = loader.get_movie_info([movie_id])
+        if len(movie_info) > 0:
+            title = movie_info.iloc[0]['title']
+            print(f"  {i}. {title} (分数: {score:.4f})")
+
+    # PageRank 推荐
+    pr_recs = pagerank_recommender.recommend_for_user(sample_user, top_n=5)
+    print("\nPageRank + CF 推荐:")
+    for i, (movie_id, score) in enumerate(pr_recs, 1):
+        movie_info = loader.get_movie_info([movie_id])
+        if len(movie_info) > 0:
+            title = movie_info.iloc[0]['title']
+            print(f"  {i}. {title} (分数: {score:.4f})")
+
+    # 混合推荐
+    hybrid_recs = hybrid_recommender.recommend_for_user(sample_user, top_n=5)
+    print("\n混合推荐 (SVD + PageRank):")
+    for i, (movie_id, score) in enumerate(hybrid_recs, 1):
+        movie_info = loader.get_movie_info([movie_id])
+        if len(movie_info) > 0:
+            title = movie_info.iloc[0]['title']
+            print(f"  {i}. {title} (分数: {score:.4f})")
 
     # 可视化
     viz = Visualizer(save_dir='./figures')
-    viz.plot_recommendation_performance({
-        'MAE': metrics['MAE'],
-        'RMSE': metrics['RMSE']
-    })
+
+    # 可视化推荐系统对比
+    import matplotlib.pyplot as plt
+
+    plt.figure(figsize=(10, 6))
+    models = ['SVD\n(基线)', 'PageRank\n+ CF', '混合推荐']
+    mae_values = [svd_metrics['MAE'], pr_metrics['MAE'], hybrid_metrics['MAE']]
+    rmse_values = [svd_metrics['RMSE'], pr_metrics['RMSE'], hybrid_metrics['RMSE']]
+
+    x = np.arange(len(models))
+    width = 0.35
+
+    plt.bar(x - width/2, mae_values, width, label='MAE', alpha=0.8, color='#2E86AB')
+    plt.bar(x + width/2, rmse_values, width, label='RMSE', alpha=0.8, color='#A23B72')
+
+    plt.xlabel('推荐系统', fontsize=12)
+    plt.ylabel('误差', fontsize=12)
+    plt.title('推荐系统性能对比', fontsize=14, fontweight='bold')
+    plt.xticks(x, models)
+    plt.legend()
+    plt.grid(axis='y', alpha=0.3)
+    plt.tight_layout()
+    plt.savefig('./figures/recommender_comparison.png', dpi=300, bbox_inches='tight')
+    print("\n\n推荐系统对比图已保存: ./figures/recommender_comparison.png")
+
+    # 使用最佳模型的指标
+    metrics = hybrid_metrics if hybrid_metrics['RMSE'] < svd_metrics['RMSE'] else svd_metrics
 
     # ========== 3. 聚类分析 ==========
     print("\n\n[步骤 3/4] 聚类分析")
