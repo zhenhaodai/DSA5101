@@ -5,8 +5,10 @@ import numpy as np
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.preprocessing import normalize
 from typing import List, Tuple, Dict
 import time
+import networkx as nx
 
 
 class SVDRecommender:
@@ -241,3 +243,377 @@ class CollaborativeFiltering:
         ]
 
         return recommendations
+
+
+class PageRankRecommender:
+    """基于 PageRank 和协同过滤的图推荐系统"""
+
+    def __init__(self, alpha: float = 0.85, cf_weight: float = 0.5):
+        """
+        初始化 PageRank 推荐系统
+
+        Args:
+            alpha: PageRank 算法的阻尼系数 (通常为 0.85)
+            cf_weight: 协同过滤权重 (0-1之间，1-cf_weight 为 PageRank 权重)
+        """
+        self.alpha = alpha
+        self.cf_weight = cf_weight
+        self.user_movie_matrix = None
+        self.graph = None
+        self.pagerank_scores = None
+        self.cosine_sim_matrix = None
+        self.user_ids = None
+        self.movie_ids = None
+
+    def fit(self, user_movie_matrix: pd.DataFrame) -> None:
+        """
+        训练 PageRank 推荐模型
+
+        Args:
+            user_movie_matrix: 用户-电影评分矩阵
+        """
+        print(f"\n正在训练 PageRank 推荐模型 (alpha={self.alpha}, cf_weight={self.cf_weight})...")
+        start_time = time.time()
+
+        self.user_movie_matrix = user_movie_matrix
+        self.user_ids = user_movie_matrix.index
+        self.movie_ids = user_movie_matrix.columns
+
+        # 1. 计算余弦相似度矩阵（用于协同过滤）
+        print("  - 计算余弦相似度矩阵...")
+        normalized_data = normalize(user_movie_matrix, axis=0)
+        self.cosine_sim_matrix = cosine_similarity(normalized_data.T)
+        self.cosine_sim_df = pd.DataFrame(
+            self.cosine_sim_matrix,
+            index=self.movie_ids,
+            columns=self.movie_ids
+        )
+
+        # 2. 创建二分图（用户-电影图）
+        print("  - 创建用户-电影二分图...")
+        self.graph = nx.Graph()
+
+        # 添加用户节点和电影节点
+        self.graph.add_nodes_from(self.user_ids, bipartite=0)
+        self.graph.add_nodes_from(self.movie_ids, bipartite=1)
+
+        # 添加边（基于评分）
+        edge_count = 0
+        for user in self.user_ids:
+            for movie in self.movie_ids:
+                rating = user_movie_matrix.loc[user, movie]
+                if rating > 0:  # 只添加有评分的边
+                    self.graph.add_edge(user, movie, weight=rating)
+                    edge_count += 1
+
+        print(f"    图中包含 {len(self.graph.nodes)} 个节点, {edge_count} 条边")
+
+        # 3. 应用 PageRank 算法
+        print("  - 应用 PageRank 算法...")
+        pagerank_all = nx.pagerank(self.graph, alpha=self.alpha)
+
+        # 提取电影的 PageRank 分数
+        self.pagerank_scores = {
+            movie: score
+            for movie, score in pagerank_all.items()
+            if movie in self.movie_ids
+        }
+
+        print(f"训练完成！用时 {time.time() - start_time:.2f} 秒")
+
+    def recommend_for_user(self, user_id: int, top_n: int = 10,
+                          exclude_rated: bool = True) -> List[Tuple[int, float]]:
+        """
+        为指定用户推荐电影（混合 PageRank 和协同过滤）
+
+        Args:
+            user_id: 用户 ID
+            top_n: 推荐电影数量
+            exclude_rated: 是否排除用户已评分的电影
+
+        Returns:
+            推荐电影列表 [(movie_id, combined_score), ...]
+        """
+        if user_id not in self.user_ids:
+            raise ValueError(f"用户 {user_id} 不在训练数据中")
+
+        user_idx = self.user_ids.get_loc(user_id)
+        user_ratings = self.user_movie_matrix.loc[user_id]
+
+        # 获取用户已评分的电影
+        rated_movies = user_ratings[user_ratings > 0].index.tolist()
+
+        # 1. 协同过滤分数：基于用户评分和电影相似度
+        cf_scores = {}
+        for movie in self.movie_ids:
+            if exclude_rated and movie in rated_movies:
+                continue
+
+            # 计算基于已评分电影的相似度加权分数
+            similarity_scores = []
+            for rated_movie in rated_movies:
+                sim = self.cosine_sim_df.loc[movie, rated_movie]
+                rating = user_ratings[rated_movie]
+                similarity_scores.append(sim * rating)
+
+            if similarity_scores:
+                cf_scores[movie] = np.mean(similarity_scores)
+            else:
+                cf_scores[movie] = 0
+
+        # 2. 归一化协同过滤分数
+        if cf_scores:
+            max_cf = max(cf_scores.values()) if cf_scores.values() else 1
+            if max_cf > 0:
+                cf_scores = {k: v / max_cf for k, v in cf_scores.items()}
+
+        # 3. 归一化 PageRank 分数
+        max_pr = max(self.pagerank_scores.values()) if self.pagerank_scores else 1
+        normalized_pr_scores = {
+            k: v / max_pr for k, v in self.pagerank_scores.items()
+        }
+
+        # 4. 混合分数：结合协同过滤和 PageRank
+        combined_scores = {}
+        for movie in self.movie_ids:
+            if exclude_rated and movie in rated_movies:
+                continue
+
+            cf_score = cf_scores.get(movie, 0)
+            pr_score = normalized_pr_scores.get(movie, 0)
+
+            # 加权组合
+            combined_score = (
+                self.cf_weight * cf_score +
+                (1 - self.cf_weight) * pr_score
+            )
+            combined_scores[movie] = combined_score
+
+        # 5. 排序并返回 top-N
+        top_movies = sorted(
+            combined_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_n]
+
+        return top_movies
+
+    def get_movie_pagerank(self, movie_id: int) -> float:
+        """获取指定电影的 PageRank 分数"""
+        if movie_id not in self.movie_ids:
+            raise ValueError(f"电影 {movie_id} 不在训练数据中")
+        return self.pagerank_scores.get(movie_id, 0)
+
+    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
+        """
+        评估 PageRank 推荐系统
+
+        Args:
+            test_ratings: 测试集评分数据
+
+        Returns:
+            评估指标字典
+        """
+        print("\n正在评估 PageRank 推荐系统...")
+
+        predictions = []
+        actuals = []
+
+        for _, row in test_ratings.iterrows():
+            user_id = row['userId']
+            movie_id = row['movieId']
+            actual_rating = row['rating']
+
+            try:
+                # 使用混合分数预测评分（需要转换到评分范围）
+                user_idx = self.user_ids.get_loc(user_id)
+                user_ratings = self.user_movie_matrix.loc[user_id]
+                rated_movies = user_ratings[user_ratings > 0].index.tolist()
+
+                # 计算协同过滤分数
+                similarity_scores = []
+                for rated_movie in rated_movies:
+                    if rated_movie != movie_id and movie_id in self.movie_ids:
+                        sim = self.cosine_sim_df.loc[movie_id, rated_movie]
+                        rating = user_ratings[rated_movie]
+                        similarity_scores.append(sim * rating)
+
+                if similarity_scores:
+                    pred_rating = np.mean(similarity_scores)
+                    pred_rating = np.clip(pred_rating, 0.5, 5.0)
+
+                    predictions.append(pred_rating)
+                    actuals.append(actual_rating)
+
+            except (KeyError, ValueError):
+                continue
+
+        if len(predictions) > 0:
+            predictions = np.array(predictions)
+            actuals = np.array(actuals)
+
+            mae = np.mean(np.abs(predictions - actuals))
+            rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
+
+            metrics = {
+                'MAE': mae,
+                'RMSE': rmse,
+                'n_predictions': len(predictions)
+            }
+
+            print(f"MAE: {mae:.4f}")
+            print(f"RMSE: {rmse:.4f}")
+            print(f"评估样本数: {len(predictions)}")
+
+            return metrics
+        else:
+            print("警告：没有足够的数据进行评估")
+            return {'MAE': float('inf'), 'RMSE': float('inf'), 'n_predictions': 0}
+
+
+class HybridRecommender:
+    """混合推荐系统：结合 SVD 和 PageRank"""
+
+    def __init__(self, svd_recommender: SVDRecommender,
+                 pagerank_recommender: PageRankRecommender,
+                 svd_weight: float = 0.5):
+        """
+        初始化混合推荐系统
+
+        Args:
+            svd_recommender: SVD 推荐器
+            pagerank_recommender: PageRank 推荐器
+            svd_weight: SVD 权重 (0-1之间，1-svd_weight 为 PageRank 权重)
+        """
+        self.svd_recommender = svd_recommender
+        self.pagerank_recommender = pagerank_recommender
+        self.svd_weight = svd_weight
+
+    def recommend_for_user(self, user_id: int, top_n: int = 10,
+                          exclude_rated: bool = True) -> List[Tuple[int, float]]:
+        """
+        为用户生成混合推荐
+
+        Args:
+            user_id: 用户 ID
+            top_n: 推荐电影数量
+            exclude_rated: 是否排除已评分电影
+
+        Returns:
+            推荐电影列表 [(movie_id, combined_score), ...]
+        """
+        # 获取 SVD 推荐
+        svd_recs = self.svd_recommender.recommend_for_user(
+            user_id, top_n=top_n*2, exclude_rated=exclude_rated
+        )
+        svd_scores = dict(svd_recs)
+
+        # 获取 PageRank 推荐
+        pr_recs = self.pagerank_recommender.recommend_for_user(
+            user_id, top_n=top_n*2, exclude_rated=exclude_rated
+        )
+        pr_scores = dict(pr_recs)
+
+        # 合并所有电影
+        all_movies = set(svd_scores.keys()) | set(pr_scores.keys())
+
+        # 归一化分数
+        max_svd = max(svd_scores.values()) if svd_scores else 1
+        max_pr = max(pr_scores.values()) if pr_scores else 1
+
+        # 计算混合分数
+        combined_scores = {}
+        for movie in all_movies:
+            svd_score = svd_scores.get(movie, 0) / max_svd
+            pr_score = pr_scores.get(movie, 0) / max_pr
+
+            combined_score = (
+                self.svd_weight * svd_score +
+                (1 - self.svd_weight) * pr_score
+            )
+            combined_scores[movie] = combined_score
+
+        # 排序并返回 top-N
+        top_movies = sorted(
+            combined_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_n]
+
+        return top_movies
+
+    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
+        """
+        评估混合推荐系统
+
+        Args:
+            test_ratings: 测试集评分数据
+
+        Returns:
+            评估指标字典
+        """
+        print(f"\n正在评估混合推荐系统 (SVD权重={self.svd_weight})...")
+
+        predictions = []
+        actuals = []
+
+        for _, row in test_ratings.iterrows():
+            user_id = row['userId']
+            movie_id = row['movieId']
+            actual_rating = row['rating']
+
+            try:
+                # 获取 SVD 预测
+                user_idx = self.svd_recommender.user_ids.get_loc(user_id)
+                movie_idx = self.svd_recommender.movie_ids.get_loc(movie_id)
+                svd_pred = self.svd_recommender.predict_rating(user_idx, movie_idx)
+
+                # 获取 PageRank + CF 预测
+                pr_user_idx = self.pagerank_recommender.user_ids.get_loc(user_id)
+                user_ratings = self.pagerank_recommender.user_movie_matrix.loc[user_id]
+                rated_movies = user_ratings[user_ratings > 0].index.tolist()
+
+                similarity_scores = []
+                for rated_movie in rated_movies:
+                    if rated_movie != movie_id:
+                        sim = self.pagerank_recommender.cosine_sim_df.loc[movie_id, rated_movie]
+                        rating = user_ratings[rated_movie]
+                        similarity_scores.append(sim * rating)
+
+                if similarity_scores:
+                    pr_pred = np.mean(similarity_scores)
+                    pr_pred = np.clip(pr_pred, 0.5, 5.0)
+                else:
+                    pr_pred = 3.0  # 默认评分
+
+                # 混合预测
+                hybrid_pred = self.svd_weight * svd_pred + (1 - self.svd_weight) * pr_pred
+                hybrid_pred = np.clip(hybrid_pred, 0.5, 5.0)
+
+                predictions.append(hybrid_pred)
+                actuals.append(actual_rating)
+
+            except (KeyError, ValueError):
+                continue
+
+        if len(predictions) > 0:
+            predictions = np.array(predictions)
+            actuals = np.array(actuals)
+
+            mae = np.mean(np.abs(predictions - actuals))
+            rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
+
+            metrics = {
+                'MAE': mae,
+                'RMSE': rmse,
+                'n_predictions': len(predictions)
+            }
+
+            print(f"MAE: {mae:.4f}")
+            print(f"RMSE: {rmse:.4f}")
+            print(f"评估样本数: {len(predictions)}")
+
+            return metrics
+        else:
+            print("警告：没有足够的数据进行评估")
+            return {'MAE': float('inf'), 'RMSE': float('inf'), 'n_predictions': 0}
