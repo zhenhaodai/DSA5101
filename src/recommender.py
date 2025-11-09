@@ -969,3 +969,74 @@ class ItemKNNRecommender:
         print(f"评估样本数: {len(predictions)}")
 
         return metrics
+
+
+class BaseRecommender:
+    """推荐器基类 - 提供统一的评估接口"""
+
+    def evaluate_ranking(self, test_ratings: pd.DataFrame, 
+                        k: int = 10, 
+                        relevance_threshold: float = 4.0,
+                        sample_size: int = 1000) -> Dict[str, float]:
+        """
+        评估推荐排序质量
+
+        Args:
+            test_ratings: 测试集
+            k: Top-K 推荐数量
+            relevance_threshold: 评分>=threshold视为相关
+            sample_size: 采样用户数量（避免太慢）
+
+        Returns:
+            Precision@K, Recall@K, NDCG@K, Hit Rate, MRR, MAP
+        """
+        from src.evaluation import RecommenderEvaluator, create_relevance_set
+
+        print(f"\n正在评估排序质量 (Top-{k})...")
+
+        # 创建相关项目集合
+        user_relevant = create_relevance_set(test_ratings, threshold=relevance_threshold)
+
+        # 采样用户（避免太慢）
+        sampled_users = list(user_relevant.keys())[:sample_size]
+        print(f"  采样 {len(sampled_users)} 个用户进行评估")
+
+        # 为每个用户生成推荐
+        user_recommendations = {}
+        processed = 0
+
+        for user_id in sampled_users:
+            try:
+                # 生成 Top-K 推荐
+                recommendations = self.recommend_for_user(user_id, top_n=k, exclude_rated=True)
+                # 提取电影ID列表
+                user_recommendations[user_id] = [movie_id for movie_id, _ in recommendations]
+
+                processed += 1
+                if processed % 200 == 0:
+                    print(f"  已处理 {processed}/{len(sampled_users)} 个用户...")
+
+            except (KeyError, ValueError):
+                continue
+
+        print(f"  完成！共评估 {len(user_recommendations)} 个用户")
+
+        # 计算指标
+        evaluator = RecommenderEvaluator(k=k)
+        metrics = evaluator.evaluate_recommendations(
+            user_recommendations,
+            {uid: user_relevant[uid] for uid in user_recommendations if uid in user_relevant},
+            k=k
+        )
+
+        # 打印结果
+        print(f"\n排序质量指标:")
+        print(f"  Precision@{k}: {metrics[f'Precision@{k}']:.4f}")
+        print(f"  Recall@{k}: {metrics[f'Recall@{k}']:.4f}")
+        print(f"  F1@{k}: {metrics[f'F1@{k}']:.4f}")
+        print(f"  NDCG@{k}: {metrics[f'NDCG@{k}']:.4f}")
+        print(f"  HitRate@{k}: {metrics[f'HitRate@{k}']:.4f}")
+        print(f"  MRR: {metrics['MRR']:.4f}")
+        print(f"  MAP: {metrics['MAP']:.4f}")
+
+        return metrics
