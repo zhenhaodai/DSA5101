@@ -9,6 +9,7 @@ from sklearn.preprocessing import normalize
 from typing import List, Tuple, Dict
 import time
 import networkx as nx
+from tqdm import tqdm
 
 
 class SVDRecommender:
@@ -150,7 +151,7 @@ class SVDRecommender:
         predictions = []
         actuals = []
 
-        for _, row in test_ratings.iterrows():
+        for _, row in tqdm(test_ratings.iterrows(), total=len(test_ratings), desc="  评估进度"):
             user_id = row['userId']
             movie_id = row['movieId']
             actual_rating = row['rating']
@@ -700,7 +701,7 @@ class ALSRecommender:
         self.item_factors = np.random.normal(0, 0.1, (n_items, self.n_factors))
 
         # ALS 交替优化
-        for iteration in range(self.n_iterations):
+        for iteration in tqdm(range(self.n_iterations), desc="  ALS 迭代"):
             # 固定物品因子，更新用户因子
             for u in range(n_users):
                 # 找到用户 u 评分过的物品
@@ -773,7 +774,7 @@ class ALSRecommender:
         predictions = []
         actuals = []
 
-        for _, row in test_ratings.iterrows():
+        for _, row in tqdm(test_ratings.iterrows(), total=len(test_ratings), desc="  评估进度"):
             user_id = row['userId']
             movie_id = row['movieId']
             actual_rating = row['rating']
@@ -933,14 +934,33 @@ class ItemKNNRecommender:
 
         return top_movies
 
-    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
-        """评估 ItemKNN 推荐系统"""
+    def evaluate(self, test_ratings: pd.DataFrame, sample_size: int = 10000) -> Dict[str, float]:
+        """
+        评估 ItemKNN 推荐系统（使用采样加速）
+
+        Args:
+            test_ratings: 测试集评分数据
+            sample_size: 采样大小（默认10000，设为None使用全部数据）
+
+        Returns:
+            评估指标字典
+        """
         print("\n正在评估 ItemKNN 推荐系统...")
+
+        # 采样加速
+        if sample_size and len(test_ratings) > sample_size:
+            test_sample = test_ratings.sample(n=sample_size, random_state=42)
+            print(f"  (使用 {sample_size}/{len(test_ratings)} 条样本进行评估)")
+        else:
+            test_sample = test_ratings
 
         predictions = []
         actuals = []
 
-        for _, row in test_ratings.iterrows():
+        print(f"  处理中... ", end='', flush=True)
+        processed = 0
+
+        for _, row in test_sample.iterrows():
             user_id = row['userId']
             movie_id = row['movieId']
             actual_rating = row['rating']
@@ -951,6 +971,13 @@ class ItemKNNRecommender:
                 actuals.append(actual_rating)
             except (KeyError, ValueError):
                 continue
+
+            # 进度提示
+            processed += 1
+            if processed % 2000 == 0:
+                print(f"{processed}...", end='', flush=True)
+
+        print("完成!")
 
         predictions = np.array(predictions)
         actuals = np.array(actuals)
