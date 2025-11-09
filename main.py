@@ -15,10 +15,55 @@ from src.recommender import (SVDRecommender, PageRankRecommender, HybridRecommen
                              ALSRecommender, ItemKNNRecommender)
 from src.clustering import MovieClusterer, DimensionalityReducer
 from src.visualization import Visualizer
+from src.evaluation import RecommenderEvaluator, create_relevance_set
 import pandas as pd
 import numpy as np
 import warnings
 warnings.filterwarnings('ignore')
+
+
+def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
+    """
+    评估推荐排序质量
+
+    Args:
+        recommender: 推荐器对象
+        test_ratings: 测试集
+        k: Top-K
+        sample_users: 采样用户数量
+
+    Returns:
+        排序质量指标字典
+    """
+    # 创建相关项目集合（评分>=4.0视为相关）
+    user_relevant = create_relevance_set(test_ratings, threshold=4.0)
+
+    # 采样用户
+    sampled_users = list(user_relevant.keys())[:sample_users]
+
+    # 生成推荐
+    user_recommendations = {}
+    for user_id in sampled_users:
+        try:
+            recs = recommender.recommend_for_user(user_id, top_n=k, exclude_rated=True)
+            user_recommendations[user_id] = [movie_id for movie_id, _ in recs]
+        except:
+            continue
+
+    # 计算指标
+    evaluator = RecommenderEvaluator(k=k)
+    metrics = evaluator.evaluate_recommendations(
+        user_recommendations,
+        {uid: user_relevant[uid] for uid in user_recommendations if uid in user_relevant},
+        k=k
+    )
+
+    print(f"  Precision@{k}: {metrics[f'Precision@{k}']:.4f}")
+    print(f"  Recall@{k}: {metrics[f'Recall@{k}']:.4f}")
+    print(f"  NDCG@{k}: {metrics[f'NDCG@{k}']:.4f}")
+    print(f"  HitRate@{k}: {metrics[f'HitRate@{k}']:.4f}")
+
+    return metrics
 
 
 def main():
@@ -97,17 +142,25 @@ def main():
         fill_value=0
     )
 
-    # 2.1 训练 SVD 基线模型
-    print("\n训练 SVD 基线模型...")
-    svd_recommender = SVDRecommender(n_components=200)  # 提升维度: 50 -> 200
+    # 2.1 训练 SVD 基线模型（传统矩阵分解）
+    print("\n训练 SVD 基线模型（传统 MF）...")
+    svd_recommender = SVDRecommender(n_components=200)
     svd_recommender.fit(train_matrix)
     svd_metrics = svd_recommender.evaluate(test_ratings)
+
+    # 评估排序质量
+    print("\n评估 SVD 排序质量 (Top-10):")
+    svd_ranking = evaluate_ranking_quality(svd_recommender, test_ratings, k=10, sample_users=500)
 
     # 2.2 训练 PageRank 推荐模型
     print("\n训练 PageRank + 协同过滤模型...")
     pagerank_recommender = PageRankRecommender(alpha=0.85, cf_weight=0.5)
     pagerank_recommender.fit(train_matrix)
     pr_metrics = pagerank_recommender.evaluate(test_ratings)
+
+    # 评估排序质量
+    print("\n评估 PageRank 排序质量 (Top-10):")
+    pr_ranking = evaluate_ranking_quality(pagerank_recommender, test_ratings, k=10, sample_users=500)
 
     # 2.3 训练混合推荐模型
     print("\n训练混合推荐模型 (SVD + PageRank)...")
@@ -118,29 +171,65 @@ def main():
     )
     hybrid_metrics = hybrid_recommender.evaluate(test_ratings)
 
-    # 2.4 训练 ALS 推荐模型 ⭐ NEW
-    print("\n训练 ALS 推荐模型...")
+    # 评估排序质量
+    print("\n评估混合推荐排序质量 (Top-10):")
+    hybrid_ranking = evaluate_ranking_quality(hybrid_recommender, test_ratings, k=10, sample_users=500)
+
+    # 2.4 训练 ALS 推荐模型（现代矩阵分解）⭐ NEW
+    print("\n训练 ALS 推荐模型（现代 MF）...")
     als_recommender = ALSRecommender(n_factors=100, n_iterations=10, regularization=0.01)
     als_recommender.fit(train_matrix)
     als_metrics = als_recommender.evaluate(test_ratings)
 
-    # 2.5 训练 ItemKNN 推荐模型 ⭐ NEW
-    print("\n训练 ItemKNN 推荐模型...")
+    # 评估排序质量
+    print("\n评估 ALS 排序质量 (Top-10):")
+    als_ranking = evaluate_ranking_quality(als_recommender, test_ratings, k=10, sample_users=500)
+
+    # 2.5 训练 ItemKNN 推荐模型（传统协同过滤）⭐ NEW
+    print("\n训练 ItemKNN 推荐模型（传统 CF - 基于物品）...")
     itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric='cosine')
     itemknn_recommender.fit(train_matrix)
     itemknn_metrics = itemknn_recommender.evaluate(test_ratings)
 
+    # 评估排序质量
+    print("\n评估 ItemKNN 排序质量 (Top-10):")
+    itemknn_ranking = evaluate_ranking_quality(itemknn_recommender, test_ratings, k=10, sample_users=500)
+
     # 对比不同推荐系统的性能
-    print("\n\n推荐系统性能对比:")
-    print("-" * 80)
-    comparison_data = pd.DataFrame({
-        '模型': ['SVD (基线)', 'ALS ⭐', 'ItemKNN ⭐', 'PageRank + CF', '混合推荐'],
+    print("\n\n" + "=" * 100)
+    print("推荐系统完整评估对比")
+    print("=" * 100)
+
+    print("\n【评分预测指标】（越低越好）")
+    print("-" * 100)
+    rating_comparison = pd.DataFrame({
+        '模型': ['SVD (传统MF)', 'ALS (现代MF)', 'ItemKNN (传统CF)', 'PageRank', '混合推荐'],
         'MAE': [svd_metrics['MAE'], als_metrics['MAE'], itemknn_metrics['MAE'],
                 pr_metrics['MAE'], hybrid_metrics['MAE']],
         'RMSE': [svd_metrics['RMSE'], als_metrics['RMSE'], itemknn_metrics['RMSE'],
                  pr_metrics['RMSE'], hybrid_metrics['RMSE']]
     })
-    print(comparison_data.to_string(index=False))
+    print(rating_comparison.to_string(index=False, float_format='%.4f'))
+
+    print("\n\n【排序质量指标】（越高越好）")
+    print("-" * 100)
+    ranking_comparison = pd.DataFrame({
+        '模型': ['SVD (传统MF)', 'ALS (现代MF)', 'ItemKNN (传统CF)', 'PageRank', '混合推荐'],
+        'Precision@10': [svd_ranking['Precision@10'], als_ranking['Precision@10'],
+                        itemknn_ranking['Precision@10'], pr_ranking['Precision@10'],
+                        hybrid_ranking['Precision@10']],
+        'Recall@10': [svd_ranking['Recall@10'], als_ranking['Recall@10'],
+                     itemknn_ranking['Recall@10'], pr_ranking['Recall@10'],
+                     hybrid_ranking['Recall@10']],
+        'NDCG@10': [svd_ranking['NDCG@10'], als_ranking['NDCG@10'],
+                   itemknn_ranking['NDCG@10'], pr_ranking['NDCG@10'],
+                   hybrid_ranking['NDCG@10']],
+        'HitRate@10': [svd_ranking['HitRate@10'], als_ranking['HitRate@10'],
+                      itemknn_ranking['HitRate@10'], pr_ranking['HitRate@10'],
+                      hybrid_ranking['HitRate@10']]
+    })
+    print(ranking_comparison.to_string(index=False, float_format='%.4f'))
+    print("=" * 100)
 
     # 展示推荐示例对比
     print("\n\n推荐示例对比:")
