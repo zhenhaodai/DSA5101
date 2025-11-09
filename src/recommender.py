@@ -404,49 +404,82 @@ class PageRankRecommender:
             raise ValueError(f"电影 {movie_id} 不在训练数据中")
         return self.pagerank_scores.get(movie_id, 0)
 
-    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
+    def evaluate(self, test_ratings: pd.DataFrame, sample_size: int = 10000) -> Dict[str, float]:
         """
-        评估 PageRank 推荐系统
+        评估 PageRank 推荐系统（使用采样加速）
 
         Args:
             test_ratings: 测试集评分数据
+            sample_size: 采样大小（默认10000，设为None使用全部数据）
 
         Returns:
             评估指标字典
         """
         print("\n正在评估 PageRank 推荐系统...")
 
+        # 如果测试集太大，随机采样以加速评估
+        if sample_size and len(test_ratings) > sample_size:
+            test_sample = test_ratings.sample(n=sample_size, random_state=42)
+            print(f"  (使用 {sample_size}/{len(test_ratings)} 条样本进行评估)")
+        else:
+            test_sample = test_ratings
+
         predictions = []
         actuals = []
 
-        for _, row in test_ratings.iterrows():
+        # 批量处理以提升效率
+        print(f"  处理中... ", end='', flush=True)
+        processed = 0
+
+        for _, row in test_sample.iterrows():
             user_id = row['userId']
             movie_id = row['movieId']
             actual_rating = row['rating']
 
             try:
-                # 使用混合分数预测评分（需要转换到评分范围）
-                user_idx = self.user_ids.get_loc(user_id)
+                # 快速检查
+                if user_id not in self.user_ids or movie_id not in self.movie_ids:
+                    continue
+
+                # 获取用户评分（矢量化）
                 user_ratings = self.user_movie_matrix.loc[user_id]
-                rated_movies = user_ratings[user_ratings > 0].index.tolist()
+                rated_mask = user_ratings > 0
+                rated_movies = user_ratings[rated_mask]
 
-                # 计算协同过滤分数
-                similarity_scores = []
-                for rated_movie in rated_movies:
-                    if rated_movie != movie_id and movie_id in self.movie_ids:
-                        sim = self.cosine_sim_df.loc[movie_id, rated_movie]
-                        rating = user_ratings[rated_movie]
-                        similarity_scores.append(sim * rating)
+                if len(rated_movies) == 0:
+                    continue
 
-                if similarity_scores:
-                    pred_rating = np.mean(similarity_scores)
-                    pred_rating = np.clip(pred_rating, 0.5, 5.0)
+                # 矢量化计算相似度（关键优化）
+                if movie_id in self.cosine_sim_df.index:
+                    similarities = self.cosine_sim_df.loc[movie_id, rated_movies.index]
+                    # 去除目标电影自身
+                    if movie_id in similarities.index:
+                        similarities = similarities.drop(movie_id)
 
-                    predictions.append(pred_rating)
-                    actuals.append(actual_rating)
+                    if len(similarities) > 0:
+                        # 加权平均
+                        weighted_sum = (similarities * rated_movies[similarities.index]).sum()
+                        similarity_sum = similarities.sum()
+
+                        if similarity_sum > 0:
+                            pred_rating = weighted_sum / similarity_sum
+                        else:
+                            pred_rating = rated_movies.mean()
+
+                        pred_rating = np.clip(pred_rating, 0.5, 5.0)
+
+                        predictions.append(pred_rating)
+                        actuals.append(actual_rating)
 
             except (KeyError, ValueError):
                 continue
+
+            # 进度提示
+            processed += 1
+            if processed % 2000 == 0:
+                print(f"{processed}...", end='', flush=True)
+
+        print("完成!")
 
         if len(predictions) > 0:
             predictions = np.array(predictions)
