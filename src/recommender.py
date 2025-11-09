@@ -617,3 +617,322 @@ class HybridRecommender:
         else:
             print("警告：没有足够的数据进行评估")
             return {'MAE': float('inf'), 'RMSE': float('inf'), 'n_predictions': 0}
+
+class ALSRecommender:
+    """基于 ALS (Alternating Least Squares) 的推荐系统
+
+    ALS 是工业界标准的矩阵分解算法，被 Spotify、Netflix 等公司使用
+    优势：比 SVD 更快，效果更好，支持隐式反馈
+    """
+
+    def __init__(self, n_factors: int = 50, n_iterations: int = 15, regularization: float = 0.01):
+        """
+        初始化 ALS 推荐系统
+
+        Args:
+            n_factors: 潜在因子数量
+            n_iterations: 迭代次数
+            regularization: 正则化参数
+        """
+        self.n_factors = n_factors
+        self.n_iterations = n_iterations
+        self.regularization = regularization
+        self.user_factors = None
+        self.item_factors = None
+        self.user_ids = None
+        self.movie_ids = None
+        self.user_movie_matrix = None
+
+    def fit(self, user_movie_matrix: pd.DataFrame) -> None:
+        """
+        训练 ALS 模型
+
+        Args:
+            user_movie_matrix: 用户-电影评分矩阵
+        """
+        print(f"\n正在训练 ALS 推荐模型 (factors={self.n_factors}, iterations={self.n_iterations})...")
+        start_time = time.time()
+
+        self.user_movie_matrix = user_movie_matrix
+        self.user_ids = user_movie_matrix.index
+        self.movie_ids = user_movie_matrix.columns
+
+        # 转换为 numpy 数组
+        R = user_movie_matrix.values
+        n_users, n_items = R.shape
+
+        # 初始化用户和物品因子矩阵
+        np.random.seed(42)
+        self.user_factors = np.random.normal(0, 0.1, (n_users, self.n_factors))
+        self.item_factors = np.random.normal(0, 0.1, (n_items, self.n_factors))
+
+        # ALS 交替优化
+        for iteration in range(self.n_iterations):
+            # 固定物品因子，更新用户因子
+            for u in range(n_users):
+                # 找到用户 u 评分过的物品
+                rated_items = R[u, :] > 0
+                if not np.any(rated_items):
+                    continue
+
+                # 提取相关的物品因子和评分
+                item_factors_u = self.item_factors[rated_items, :]
+                ratings_u = R[u, rated_items]
+
+                # 求解最小二乘问题: min ||ratings_u - user_factor · item_factors_u^T||^2 + reg||user_factor||^2
+                A = item_factors_u.T @ item_factors_u + self.regularization * np.eye(self.n_factors)
+                b = item_factors_u.T @ ratings_u
+                self.user_factors[u, :] = np.linalg.solve(A, b)
+
+            # 固定用户因子，更新物品因子
+            for i in range(n_items):
+                # 找到评分过物品 i 的用户
+                rating_users = R[:, i] > 0
+                if not np.any(rating_users):
+                    continue
+
+                # 提取相关的用户因子和评分
+                user_factors_i = self.user_factors[rating_users, :]
+                ratings_i = R[rating_users, i]
+
+                # 求解最小二乘问题
+                A = user_factors_i.T @ user_factors_i + self.regularization * np.eye(self.n_factors)
+                b = user_factors_i.T @ ratings_i
+                self.item_factors[i, :] = np.linalg.solve(A, b)
+
+        print(f"训练完成！用时 {time.time() - start_time:.2f} 秒")
+
+    def predict_rating(self, user_idx: int, movie_idx: int) -> float:
+        """预测用户对电影的评分"""
+        prediction = np.dot(self.user_factors[user_idx], self.item_factors[movie_idx])
+        return np.clip(prediction, 0.5, 5.0)
+
+    def recommend_for_user(self, user_id: int, top_n: int = 10,
+                          exclude_rated: bool = True) -> List[Tuple[int, float]]:
+        """为指定用户推荐电影"""
+        if user_id not in self.user_ids:
+            raise ValueError(f"用户 {user_id} 不在训练数据中")
+
+        user_idx = self.user_ids.get_loc(user_id)
+
+        # 计算该用户对所有电影的预测评分
+        predictions = np.dot(self.user_factors[user_idx], self.item_factors.T)
+        predictions = np.clip(predictions, 0.5, 5.0)
+
+        # 排除已评分电影
+        if exclude_rated:
+            rated_mask = self.user_movie_matrix.iloc[user_idx] > 0
+            predictions[rated_mask] = -1
+
+        # 获取 top-N 推荐
+        top_indices = np.argsort(predictions)[::-1][:top_n]
+        recommendations = [
+            (self.movie_ids[idx], predictions[idx])
+            for idx in top_indices
+        ]
+
+        return recommendations
+
+    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
+        """评估 ALS 推荐系统"""
+        print("\n正在评估 ALS 推荐系统...")
+
+        predictions = []
+        actuals = []
+
+        for _, row in test_ratings.iterrows():
+            user_id = row['userId']
+            movie_id = row['movieId']
+            actual_rating = row['rating']
+
+            try:
+                user_idx = self.user_ids.get_loc(user_id)
+                movie_idx = self.movie_ids.get_loc(movie_id)
+                pred_rating = self.predict_rating(user_idx, movie_idx)
+
+                predictions.append(pred_rating)
+                actuals.append(actual_rating)
+            except KeyError:
+                continue
+
+        predictions = np.array(predictions)
+        actuals = np.array(actuals)
+
+        mae = np.mean(np.abs(predictions - actuals))
+        rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
+
+        metrics = {
+            'MAE': mae,
+            'RMSE': rmse,
+            'n_predictions': len(predictions)
+        }
+
+        print(f"MAE: {mae:.4f}")
+        print(f"RMSE: {rmse:.4f}")
+        print(f"评估样本数: {len(predictions)}")
+
+        return metrics
+
+
+class ItemKNNRecommender:
+    """基于物品的 K 近邻协同过滤推荐系统
+
+    ItemKNN 是经典的推荐算法，具有以下优势：
+    - 可解释性强（基于相似物品推荐）
+    - 无需训练（直接计算相似度）
+    - 效果稳定
+    """
+
+    def __init__(self, k: int = 20, similarity_metric: str = 'cosine'):
+        """
+        初始化 ItemKNN 推荐系统
+
+        Args:
+            k: 近邻数量
+            similarity_metric: 相似度度量（cosine, pearson）
+        """
+        self.k = k
+        self.similarity_metric = similarity_metric
+        self.item_similarity = None
+        self.user_movie_matrix = None
+        self.user_ids = None
+        self.movie_ids = None
+
+    def fit(self, user_movie_matrix: pd.DataFrame) -> None:
+        """
+        训练 ItemKNN 模型（计算物品相似度矩阵）
+
+        Args:
+            user_movie_matrix: 用户-电影评分矩阵
+        """
+        print(f"\n正在训练 ItemKNN 推荐模型 (k={self.k}, metric={self.similarity_metric})...")
+        start_time = time.time()
+
+        self.user_movie_matrix = user_movie_matrix
+        self.user_ids = user_movie_matrix.index
+        self.movie_ids = user_movie_matrix.columns
+
+        # 计算物品-物品相似度矩阵
+        if self.similarity_metric == 'cosine':
+            # 使用余弦相似度
+            self.item_similarity = cosine_similarity(user_movie_matrix.T)
+        elif self.similarity_metric == 'pearson':
+            # 使用皮尔逊相关系数
+            self.item_similarity = np.corrcoef(user_movie_matrix.T)
+            # 处理 NaN
+            self.item_similarity = np.nan_to_num(self.item_similarity, 0)
+        else:
+            raise ValueError(f"不支持的相似度度量: {self.similarity_metric}")
+
+        # 转换为 DataFrame 方便索引
+        self.item_similarity_df = pd.DataFrame(
+            self.item_similarity,
+            index=self.movie_ids,
+            columns=self.movie_ids
+        )
+
+        print(f"训练完成！用时 {time.time() - start_time:.2f} 秒")
+        print(f"物品相似度矩阵: {self.item_similarity.shape}")
+
+    def predict_rating(self, user_id: int, movie_id: int) -> float:
+        """预测用户对电影的评分"""
+        if user_id not in self.user_ids or movie_id not in self.movie_ids:
+            return 2.5  # 返回平均评分
+
+        # 获取用户评分过的电影
+        user_ratings = self.user_movie_matrix.loc[user_id]
+        rated_movies = user_ratings[user_ratings > 0]
+
+        if len(rated_movies) == 0:
+            return 2.5
+
+        # 获取与目标电影最相似的 k 个电影
+        similarities = self.item_similarity_df.loc[movie_id, rated_movies.index]
+
+        # 选择 top-k 相似电影
+        top_k_similar = similarities.nlargest(self.k)
+
+        if len(top_k_similar) == 0 or top_k_similar.sum() == 0:
+            return 2.5
+
+        # 加权平均预测
+        weighted_sum = 0
+        similarity_sum = 0
+
+        for similar_movie, similarity in top_k_similar.items():
+            if similarity > 0:
+                rating = rated_movies[similar_movie]
+                weighted_sum += similarity * rating
+                similarity_sum += similarity
+
+        if similarity_sum > 0:
+            prediction = weighted_sum / similarity_sum
+        else:
+            prediction = 2.5
+
+        return np.clip(prediction, 0.5, 5.0)
+
+    def recommend_for_user(self, user_id: int, top_n: int = 10,
+                          exclude_rated: bool = True) -> List[Tuple[int, float]]:
+        """为指定用户推荐电影"""
+        if user_id not in self.user_ids:
+            raise ValueError(f"用户 {user_id} 不在训练数据中")
+
+        # 获取用户评分过的电影
+        user_ratings = self.user_movie_matrix.loc[user_id]
+        rated_movies = user_ratings[user_ratings > 0]
+
+        # 为所有未评分电影预测评分
+        predictions = {}
+        for movie_id in self.movie_ids:
+            if exclude_rated and movie_id in rated_movies.index:
+                continue
+
+            pred_rating = self.predict_rating(user_id, movie_id)
+            predictions[movie_id] = pred_rating
+
+        # 排序并返回 top-N
+        top_movies = sorted(
+            predictions.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )[:top_n]
+
+        return top_movies
+
+    def evaluate(self, test_ratings: pd.DataFrame) -> Dict[str, float]:
+        """评估 ItemKNN 推荐系统"""
+        print("\n正在评估 ItemKNN 推荐系统...")
+
+        predictions = []
+        actuals = []
+
+        for _, row in test_ratings.iterrows():
+            user_id = row['userId']
+            movie_id = row['movieId']
+            actual_rating = row['rating']
+
+            try:
+                pred_rating = self.predict_rating(user_id, movie_id)
+                predictions.append(pred_rating)
+                actuals.append(actual_rating)
+            except (KeyError, ValueError):
+                continue
+
+        predictions = np.array(predictions)
+        actuals = np.array(actuals)
+
+        mae = np.mean(np.abs(predictions - actuals))
+        rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
+
+        metrics = {
+            'MAE': mae,
+            'RMSE': rmse,
+            'n_predictions': len(predictions)
+        }
+
+        print(f"MAE: {mae:.4f}")
+        print(f"RMSE: {rmse:.4f}")
+        print(f"评估样本数: {len(predictions)}")
+
+        return metrics

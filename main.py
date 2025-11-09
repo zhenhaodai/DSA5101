@@ -11,7 +11,8 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from src.data_loader import MovieLensLoader
-from src.recommender import SVDRecommender, PageRankRecommender, HybridRecommender
+from src.recommender import (SVDRecommender, PageRankRecommender, HybridRecommender,
+                             ALSRecommender, ItemKNNRecommender)
 from src.clustering import MovieClusterer, DimensionalityReducer
 from src.visualization import Visualizer
 import pandas as pd
@@ -98,7 +99,7 @@ def main():
 
     # 2.1 训练 SVD 基线模型
     print("\n训练 SVD 基线模型...")
-    svd_recommender = SVDRecommender(n_components=50)
+    svd_recommender = SVDRecommender(n_components=200)  # 提升维度: 50 -> 200
     svd_recommender.fit(train_matrix)
     svd_metrics = svd_recommender.evaluate(test_ratings)
 
@@ -117,13 +118,27 @@ def main():
     )
     hybrid_metrics = hybrid_recommender.evaluate(test_ratings)
 
+    # 2.4 训练 ALS 推荐模型 ⭐ NEW
+    print("\n训练 ALS 推荐模型...")
+    als_recommender = ALSRecommender(n_factors=100, n_iterations=10, regularization=0.01)
+    als_recommender.fit(train_matrix)
+    als_metrics = als_recommender.evaluate(test_ratings)
+
+    # 2.5 训练 ItemKNN 推荐模型 ⭐ NEW
+    print("\n训练 ItemKNN 推荐模型...")
+    itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric='cosine')
+    itemknn_recommender.fit(train_matrix)
+    itemknn_metrics = itemknn_recommender.evaluate(test_ratings)
+
     # 对比不同推荐系统的性能
     print("\n\n推荐系统性能对比:")
     print("-" * 80)
     comparison_data = pd.DataFrame({
-        '模型': ['SVD (基线)', 'PageRank + CF', '混合推荐'],
-        'MAE': [svd_metrics['MAE'], pr_metrics['MAE'], hybrid_metrics['MAE']],
-        'RMSE': [svd_metrics['RMSE'], pr_metrics['RMSE'], hybrid_metrics['RMSE']]
+        '模型': ['SVD (基线)', 'ALS ⭐', 'ItemKNN ⭐', 'PageRank + CF', '混合推荐'],
+        'MAE': [svd_metrics['MAE'], als_metrics['MAE'], itemknn_metrics['MAE'],
+                pr_metrics['MAE'], hybrid_metrics['MAE']],
+        'RMSE': [svd_metrics['RMSE'], als_metrics['RMSE'], itemknn_metrics['RMSE'],
+                 pr_metrics['RMSE'], hybrid_metrics['RMSE']]
     })
     print(comparison_data.to_string(index=False))
 
@@ -160,16 +175,36 @@ def main():
             title = movie_info.iloc[0]['title']
             print(f"  {i}. {title} (分数: {score:.4f})")
 
+    # ALS 推荐 ⭐ NEW
+    als_recs = als_recommender.recommend_for_user(sample_user, top_n=5)
+    print("\nALS 推荐 ⭐:")
+    for i, (movie_id, score) in enumerate(als_recs, 1):
+        movie_info = loader.get_movie_info([movie_id])
+        if len(movie_info) > 0:
+            title = movie_info.iloc[0]['title']
+            print(f"  {i}. {title} (分数: {score:.4f})")
+
+    # ItemKNN 推荐 ⭐ NEW
+    itemknn_recs = itemknn_recommender.recommend_for_user(sample_user, top_n=5)
+    print("\nItemKNN 推荐 ⭐:")
+    for i, (movie_id, score) in enumerate(itemknn_recs, 1):
+        movie_info = loader.get_movie_info([movie_id])
+        if len(movie_info) > 0:
+            title = movie_info.iloc[0]['title']
+            print(f"  {i}. {title} (分数: {score:.4f})")
+
     # 可视化
     viz = Visualizer(save_dir='./figures')
 
     # 可视化推荐系统对比
     import matplotlib.pyplot as plt
 
-    plt.figure(figsize=(10, 6))
-    models = ['SVD\n(基线)', 'PageRank\n+ CF', '混合推荐']
-    mae_values = [svd_metrics['MAE'], pr_metrics['MAE'], hybrid_metrics['MAE']]
-    rmse_values = [svd_metrics['RMSE'], pr_metrics['RMSE'], hybrid_metrics['RMSE']]
+    plt.figure(figsize=(14, 6))
+    models = ['SVD\n(基线)', 'ALS\n⭐', 'ItemKNN\n⭐', 'PageRank\n+ CF', '混合推荐']
+    mae_values = [svd_metrics['MAE'], als_metrics['MAE'], itemknn_metrics['MAE'],
+                  pr_metrics['MAE'], hybrid_metrics['MAE']]
+    rmse_values = [svd_metrics['RMSE'], als_metrics['RMSE'], itemknn_metrics['RMSE'],
+                   pr_metrics['RMSE'], hybrid_metrics['RMSE']]
 
     x = np.arange(len(models))
     width = 0.35
