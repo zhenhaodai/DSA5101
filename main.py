@@ -64,10 +64,29 @@ def main():
         min_movie_ratings=50
     )
 
-    # 评估推荐系统 - 使用 80/20 分割
-    train_size = int(len(filtered_ratings) * 0.8)
-    train_ratings = filtered_ratings.iloc[:train_size]
-    test_ratings = filtered_ratings.iloc[train_size:]
+    # 评估推荐系统 - 使用改进的 80/20 分割策略
+    # 确保测试集中的用户和电影都在训练集中出现过
+    print("\n正在划分训练集和测试集...")
+
+    # 对每个用户，随机选择 20% 的评分作为测试集
+    train_list = []
+    test_list = []
+
+    for user_id in filtered_ratings['userId'].unique():
+        user_ratings = filtered_ratings[filtered_ratings['userId'] == user_id]
+        n_test = max(1, int(len(user_ratings) * 0.2))  # 至少1个测试样本
+
+        # 随机打乱
+        user_ratings = user_ratings.sample(frac=1, random_state=42)
+
+        test_list.append(user_ratings.iloc[:n_test])
+        train_list.append(user_ratings.iloc[n_test:])
+
+    train_ratings = pd.concat(train_list, ignore_index=True)
+    test_ratings = pd.concat(test_list, ignore_index=True)
+
+    print(f"训练集: {len(train_ratings)} 条评分")
+    print(f"测试集: {len(test_ratings)} 条评分")
 
     # 创建训练矩阵
     train_matrix = train_ratings.pivot_table(
