@@ -10,7 +10,8 @@ import os
 sys.path.append(os.path.dirname(__file__))
 
 from src.data_loader import MovieLensLoader
-from src.recommender import SVDRecommender, PageRankRecommender, HybridRecommender
+from src.recommender import (SVDRecommender, PageRankRecommender, HybridRecommender,
+                             ALSRecommender, ItemKNNRecommender)
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -62,18 +63,38 @@ def run_ablation_study():
     print(f"用户-电影矩阵: {train_matrix.shape}")
 
     # ========== 2. 训练基线模型 (SVD) ==========
-    print("\n[步骤 2/4] 训练基线模型 - SVD")
+    print("\n[步骤 2/6] 训练基线模型 - SVD")
     print("-" * 80)
 
-    svd_recommender = SVDRecommender(n_components=50)
+    svd_recommender = SVDRecommender(n_components=200)  # 提升维度
     svd_recommender.fit(train_matrix)
 
     # 评估 SVD
     print("\n评估 SVD 基线:")
     svd_metrics = svd_recommender.evaluate(test_ratings)
 
-    # ========== 3. 训练 PageRank 模型 ==========
-    print("\n[步骤 3/4] 训练 PageRank + 协同过滤模型")
+    # ========== 3. 训练 ALS 模型 ⭐ NEW ==========
+    print("\n[步骤 3/6] 训练 ALS 模型 ⭐")
+    print("-" * 80)
+
+    als_recommender = ALSRecommender(n_factors=100, n_iterations=10, regularization=0.01)
+    als_recommender.fit(train_matrix)
+
+    print("\n评估 ALS:")
+    als_metrics = als_recommender.evaluate(test_ratings)
+
+    # ========== 4. 训练 ItemKNN 模型 ⭐ NEW ==========
+    print("\n[步骤 4/6] 训练 ItemKNN 模型 ⭐")
+    print("-" * 80)
+
+    itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric='cosine')
+    itemknn_recommender.fit(train_matrix)
+
+    print("\n评估 ItemKNN:")
+    itemknn_metrics = itemknn_recommender.evaluate(test_ratings)
+
+    # ========== 5. 训练 PageRank 模型 ==========
+    print("\n[步骤 5/6] 训练 PageRank + 协同过滤模型")
     print("-" * 80)
 
     # 测试不同的 cf_weight
@@ -94,8 +115,8 @@ def run_ablation_study():
             'n_predictions': pr_metrics['n_predictions']
         })
 
-    # ========== 4. 训练混合模型 ==========
-    print("\n[步骤 4/4] 训练混合推荐系统 (SVD + PageRank)")
+    # ========== 6. 训练混合模型 ==========
+    print("\n[步骤 6/6] 训练混合推荐系统 (SVD + PageRank)")
     print("-" * 80)
 
     # 使用最佳的 PageRank 配置
@@ -138,6 +159,24 @@ def run_ablation_study():
         'MAE': svd_metrics['MAE'],
         'RMSE': svd_metrics['RMSE'],
         'n_predictions': svd_metrics['n_predictions']
+    })
+
+    # 添加 ALS 结果 ⭐
+    results.append({
+        'model': 'ALS ⭐',
+        'parameter': 'f=100,i=10',
+        'MAE': als_metrics['MAE'],
+        'RMSE': als_metrics['RMSE'],
+        'n_predictions': als_metrics['n_predictions']
+    })
+
+    # 添加 ItemKNN 结果 ⭐
+    results.append({
+        'model': 'ItemKNN ⭐',
+        'parameter': 'k=30',
+        'MAE': itemknn_metrics['MAE'],
+        'RMSE': itemknn_metrics['RMSE'],
+        'n_predictions': itemknn_metrics['n_predictions']
     })
 
     # 添加 PageRank 结果
