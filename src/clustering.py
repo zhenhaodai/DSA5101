@@ -232,22 +232,30 @@ class DimensionalityReducer:
         Returns:
             降维后的特征矩阵
         """
-        print(f"\n正在使用 PCA 降维 (n_components={self.n_components})...")
+        # 自动调整 n_components 不超过特征维度
+        n_features = features.shape[1]
+        actual_n_components = min(self.n_components, n_features)
+
+        if actual_n_components < self.n_components:
+            print(f"\n警告: 特征维度 ({n_features}) 小于指定的 n_components ({self.n_components})")
+            print(f"自动调整为 n_components={actual_n_components}")
+
+        print(f"\n正在使用 PCA 降维 (n_components={actual_n_components})...")
         start_time = time.time()
 
         self.original_features = features
-        self.pca = PCA(n_components=self.n_components, random_state=42)
+        self.pca = PCA(n_components=actual_n_components, random_state=42)
         reduced_data = self.pca.fit_transform(features)
 
         self.reduced_features = pd.DataFrame(
             reduced_data,
             index=features.index,
-            columns=[f'PC{i+1}' for i in range(self.n_components)]
+            columns=[f'PC{i+1}' for i in range(actual_n_components)]
         )
 
         explained_variance = np.sum(self.pca.explained_variance_ratio_)
         print(f"PCA 降维完成！用时 {time.time() - start_time:.2f} 秒")
-        print(f"原始维度: {features.shape[1]} -> 降维后: {self.n_components}")
+        print(f"原始维度: {features.shape[1]} -> 降维后: {actual_n_components}")
         print(f"解释方差比例: {explained_variance:.4f}")
 
         return self.reduced_features
