@@ -163,7 +163,195 @@
 <h3>Embedded Modules</h3>
 
 <p>All source code is self-contained in this notebook.</p></div>
-<div class="cell markdown-cell"><h4>Data Loader</h4></div>
+<div class="cell markdown-cell"><h4>Data Loader</h4>
+
+<p>The following class handles all data loading and preprocessing for the MovieLens 20M dataset.</p></div>
+<div class="cell code-cell"><pre><code>import numpy as np
+import pandas as pd
+import os
+from typing import Tuple
+
+
+class MovieLensLoader:
+    &quot;&quot;&quot;
+    Data loader for MovieLens 20M dataset
+    
+    Handles loading ratings.csv and movies.csv, with optional sampling
+    for faster processing during development.
+    &quot;&quot;&quot;
+    
+    def __init__(self, data_dir: str = &#39;./data&#39;):
+        &quot;&quot;&quot;
+        Initialize loader with data directory path
+        
+        Args:
+            data_dir: Path to directory containing ml-20m data files
+        &quot;&quot;&quot;
+        self.data_dir = data_dir
+        self.ratings = None
+        self.movies = None
+        
+    def load_data(self, sample_size: int = None) -&gt; None:
+        &quot;&quot;&quot;
+        Load ratings and movies data from CSV files
+        
+        Args:
+            sample_size: Number of ratings to sample. If None, load all data.
+                        Use smaller values (e.g., 2M) for faster processing.
+        &quot;&quot;&quot;
+        # Construct file paths
+        ratings_path = os.path.join(self.data_dir, &#39;ml-20m&#39;, &#39;ratings.csv&#39;)
+        movies_path = os.path.join(self.data_dir, &#39;ml-20m&#39;, &#39;movies.csv&#39;)
+        
+        # Check if files exist
+        if not os.path.exists(ratings_path):
+            raise FileNotFoundError(f&quot;ratings.csv not found at {ratings_path}&quot;)
+        if not os.path.exists(movies_path):
+            raise FileNotFoundError(f&quot;movies.csv not found at {movies_path}&quot;)
+        
+        # Load movies (small file, load all)
+        print(&quot;Loading movies.csv...&quot;)
+        self.movies = pd.read_csv(movies_path)
+        
+        # Load ratings with optional sampling
+        print(f&quot;Loading ratings.csv...&quot;)
+        if sample_size:
+            # Read in chunks and sample
+            chunks = []
+            chunk_size = 1000000
+            for chunk in pd.read_csv(ratings_path, chunksize=chunk_size):
+                chunks.append(chunk)
+                if sum(len(c) for c in chunks) &gt;= sample_size:
+                    break
+            
+            self.ratings = pd.concat(chunks, ignore_index=True)
+            if len(self.ratings) &gt; sample_size:
+                self.ratings = self.ratings.sample(n=sample_size, random_state=42)
+        else:
+            self.ratings = pd.read_csv(ratings_path)
+        
+        print(f&quot;✓ Loaded {len(self.ratings):,} ratings and {len(self.movies):,} movies&quot;)
+    
+    def preprocess_for_recommendation(self, 
+                                     min_user_ratings: int = 50,
+                                     min_movie_ratings: int = 50) -&gt; Tuple[pd.DataFrame, pd.DataFrame]:
+        &quot;&quot;&quot;
+        Filter data and create user-movie matrix
+        
+        Why filter?
+        - Users with few ratings: Can&#39;t learn their preferences reliably
+        - Movies with few ratings: Statistics are noisy and unreliable
+        - Reduces sparsity and improves model quality
+        
+        Args:
+            min_user_ratings: Minimum number of ratings per user to keep
+            min_movie_ratings: Minimum number of ratings per movie to keep
+            
+        Returns:
+            user_movie_matrix: Sparse matrix (users × movies) with ratings
+            filtered_ratings: Filtered ratings dataframe
+        &quot;&quot;&quot;
+        if self.ratings is None:
+            raise ValueError(&quot;Must call load_data() first&quot;)
+        
+        print(f&quot;\nApplying filters:&quot;)
+        print(f&quot;  - min_user_ratings: {min_user_ratings}&quot;)
+        print(f&quot;  - min_movie_ratings: {min_movie_ratings}&quot;)
+        
+        # Start with all ratings
+        filtered_ratings = self.ratings.copy()
+        
+        # Iteratively filter until stable
+        prev_users = 0
+        prev_movies = 0
+        iteration = 0
+        
+        while True:
+            iteration += 1
+            
+            # Count ratings per user and movie
+            user_counts = filtered_ratings[&#39;userId&#39;].value_counts()
+            movie_counts = filtered_ratings[&#39;movieId&#39;].value_counts()
+            
+            # Get users and movies that meet threshold
+            valid_users = user_counts[user_counts &gt;= min_user_ratings].index
+            valid_movies = movie_counts[movie_counts &gt;= min_movie_ratings].index
+            
+            # Filter ratings
+            filtered_ratings = filtered_ratings[
+                (filtered_ratings[&#39;userId&#39;].isin(valid_users)) &amp;
+                (filtered_ratings[&#39;movieId&#39;].isin(valid_movies))
+            ]
+            
+            # Check if converged
+            n_users = filtered_ratings[&#39;userId&#39;].nunique()
+            n_movies = filtered_ratings[&#39;movieId&#39;].nunique()
+            
+            if n_users == prev_users and n_movies == prev_movies:
+                print(f&quot;  ✓ Converged after {iteration} iterations&quot;)
+                break
+                
+            prev_users = n_users
+            prev_movies = n_movies
+        
+        # Create user-movie matrix (pivot table)
+        print(f&quot;\nCreating user-movie matrix...&quot;)
+        user_movie_matrix = filtered_ratings.pivot_table(
+            index=&#39;userId&#39;,
+            columns=&#39;movieId&#39;, 
+            values=&#39;rating&#39;,
+            fill_value=0
+        )
+        
+        return user_movie_matrix, filtered_ratings
+    
+    def create_movie_features(self, use_genome: bool = False) -&gt; pd.DataFrame:
+        &quot;&quot;&quot;
+        Create feature matrix for movies
+        
+        Features include one-hot encoded genres. Genome scores can be
+        added if available (requires genome-scores.csv).
+        
+        Args:
+            use_genome: Whether to include genome tag scores (default: False)
+            
+        Returns:
+            movie_features: DataFrame with movie features (movies × features)
+        &quot;&quot;&quot;
+        if self.movies is None:
+            raise ValueError(&quot;Must call load_data() first&quot;)
+        
+        print(&quot;\nCreating movie features from genres...&quot;)
+        
+        # Extract all unique genres
+        all_genres = set()
+        for genres_str in self.movies[&#39;genres&#39;]:
+            if genres_str != &#39;(no genres listed)&#39;:
+                for genre in genres_str.split(&#39;|&#39;):
+                    all_genres.add(genre)
+        
+        all_genres = sorted(list(all_genres))
+        print(f&quot;  Found {len(all_genres)} genres: {&#39;, &#39;.join(all_genres)}&quot;)
+        
+        # Create one-hot encoding for genres
+        genre_features = []
+        for idx, row in self.movies.iterrows():
+            movie_genres = row[&#39;genres&#39;].split(&#39;|&#39;) if row[&#39;genres&#39;] != &#39;(no genres listed)&#39; else []
+            features = [1 if genre in movie_genres else 0 for genre in all_genres]
+            genre_features.append(features)
+        
+        # Create DataFrame
+        movie_features = pd.DataFrame(
+            genre_features,
+            index=self.movies[&#39;movieId&#39;],
+            columns=all_genres
+        )
+        
+        print(f&quot;  ✓ Created feature matrix: {movie_features.shape}&quot;)
+        
+        return movie_features
+
+print(&quot;✓ MovieLensLoader class defined&quot;)</code></pre></div>
 <div class="cell code-cell"><pre><code># ============================================================================
 # DATA LOADING
 # ============================================================================
