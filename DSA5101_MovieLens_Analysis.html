@@ -106,139 +106,125 @@
 <hr></div>
 <div class="cell markdown-cell"><h2>⚙️ Setup Instructions</h2>
 
-<p><strong>IMPORTANT:</strong> Complete these steps in your <strong>terminal/command prompt</strong> BEFORE running this notebook.</p>
+<h3>Quick Setup (3 Steps)</h3>
 
-<p>The notebook will <strong>NOT</strong> install dependencies or download data automatically (too slow in notebooks).</p>
+<p><strong>RECOMMENDED: Use terminal for faster download (see commands below)</strong></p>
 
-<hr>
-
-<h3>Step 1: Install Python Dependencies</h3>
-
-<p>Copy and run these commands in your terminal:</p>
-
-<h4>For Linux/Mac:</h4>
-<p>```bash</p>
-<p>pip install numpy&gt;=1.21.0 pandas&gt;=1.3.0 scikit-learn&gt;=1.0.0 matplotlib&gt;=3.4.0 seaborn&gt;=0.11.0 networkx&gt;=2.6.0 scipy&gt;=1.7.0 tqdm&gt;=4.62.0</p>
-<p>```</p>
-
-<h4>For Windows:</h4>
-<p>```powershell</p>
-<p>pip install numpy&gt;=1.21.0 pandas&gt;=1.3.0 scikit-learn&gt;=1.0.0 matplotlib&gt;=3.4.0 seaborn&gt;=0.11.0 networkx&gt;=2.6.0 scipy&gt;=1.7.0 tqdm&gt;=4.62.0</p>
-<p>```</p>
-
-<p>Or use requirements.txt:</p>
-<p>```bash</p>
-<p>pip install -r requirements.txt</p>
-<p>```</p>
+<p>OR run the cells below for automatic setup (slower but convenient).</p>
 
 <hr>
+</div>
+<div class="cell markdown-cell"><h3>Step 1: Install Dependencies</h3>
 
-<h3>Step 2: Download MovieLens 20M Dataset</h3>
-
-<p>Copy and paste the appropriate script for your OS:</p>
-
-<h4>🐧 For Linux/Mac:</h4>
+<p><strong>Option A - Recommended (Faster):</strong> Run in terminal:</p>
 <p>```bash</p>
-<p>#!/bin/bash</p>
-<p>echo &quot;Downloading MovieLens 20M dataset...&quot;</p>
-<p>echo &quot;Note: Dataset size is ~190MB, download may take a few minutes&quot;</p>
-
-<h1>Create data directory</h1>
-<p>mkdir -p data</p>
-<p>cd data</p>
-
-<h1>Download dataset</h1>
-<p>wget http://files.grouplens.org/datasets/movielens/ml-20m.zip</p>
-
-<h1>Extract</h1>
-<p>echo &quot;Extracting dataset...&quot;</p>
-<p>unzip -q ml-20m.zip</p>
-
-<h1>Cleanup</h1>
-<p>rm ml-20m.zip</p>
-
-<p>echo &quot;Download complete!&quot;</p>
-<p>echo &quot;Dataset location: ./data/ml-20m/&quot;</p>
+<p>pip install numpy pandas scikit-learn matplotlib seaborn networkx scipy tqdm</p>
 <p>```</p>
 
-<p><strong>Run with:</strong></p>
-<p>```bash</p>
-<p>bash download_data.sh</p>
-<p>```</p>
+<p><strong>Option B - Run cell below</strong> (slower, but works in notebook):</p>
+</div>
+<div class="cell code-cell"><pre><code># Install Python packages (skip if already installed)
+import subprocess
+import sys
 
-<hr>
+packages = [&#39;numpy&#39;, &#39;pandas&#39;, &#39;scikit-learn&#39;, &#39;matplotlib&#39;, &#39;seaborn&#39;, &#39;networkx&#39;, &#39;scipy&#39;, &#39;tqdm&#39;]
 
-<h4>🪟 For Windows PowerShell:</h4>
-<p>```powershell</p>
-<p>Write-Host &quot;Downloading MovieLens 20M dataset...&quot;</p>
-<p>Write-Host &quot;Note: Dataset size is ~190MB, download may take a few minutes&quot;</p>
+print(&quot;Installing packages...&quot;)
+try:
+    subprocess.check_call([sys.executable, &#39;-m&#39;, &#39;pip&#39;, &#39;install&#39;, &#39;-q&#39;] + packages)
+    print(&quot;✓ Packages installed&quot;)
+except:
+    print(&quot;⚠️  Install failed. Run in terminal: pip install numpy pandas scikit-learn matplotlib seaborn networkx scipy tqdm&quot;)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>Step 2: Download Dataset</h3>
 
-<h1>Create data directory</h1>
-<p>$DataDir = &quot;data&quot;</p>
-<p>if (-not (Test-Path $DataDir)) {</p>
-<p>    New-Item -ItemType Directory -Path $DataDir | Out-Null</p>
-<p>}</p>
+<p><strong>⚠️  RECOMMENDED: Download manually for faster speed</strong></p>
 
-<p>Set-Location $DataDir</p>
-
-<h1>Download dataset</h1>
-<p>$Url = &quot;http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;</p>
-<p>$ZipFile = &quot;ml-20m.zip&quot;</p>
-
-<p>Invoke-WebRequest -Uri $Url -OutFile $ZipFile</p>
-
-<h1>Extract</h1>
-<p>Write-Host &quot;Extracting dataset...&quot;</p>
-<p>Expand-Archive -Path $ZipFile -DestinationPath . -Force</p>
-
-<h1>Cleanup</h1>
-<p>Remove-Item $ZipFile</p>
-
-<p>Write-Host &quot;Download complete!&quot;</p>
-<p>Write-Host &quot;Dataset location: $(Join-Path (Get-Location) &#39;ml-20m&#39;)&quot;</p>
-<p>```</p>
-
-<p><strong>Run with:</strong></p>
-<p>```powershell</p>
-<p>.\download_data.ps1</p>
-<p>```</p>
-
-<hr>
-
-<h3>Alternative: Manual Download</h3>
-
-<p>If scripts don&#39;t work:</p>
-<li>Visit: https://grouplens.org/datasets/movielens/20m/</li>
-<li>Download `ml-20m.zip`</li>
+<h4>Manual Download (Faster):</h4>
+<p>1. <strong>Browser:</strong> Visit https://grouplens.org/datasets/movielens/20m/</p>
+<li>Download `ml-20m.zip` (~190MB)</li>
 <li>Extract to `./data/` directory</li>
-<li>Ensure structure is: `./data/ml-20m/ratings.csv` and `./data/ml-20m/movies.csv`</li>
 
-<hr>
+<h4>Terminal Download:</h4>
+<p><strong>Linux/Mac:</strong></p>
+<p>```bash</p>
+<p>mkdir -p data &amp;&amp; cd data</p>
+<p>wget http://files.grouplens.org/datasets/movielens/ml-20m.zip</p>
+<p>unzip ml-20m.zip &amp;&amp; rm ml-20m.zip</p>
+<p>```</p>
 
-<h3>Step 3: Verify Setup</h3>
+<p><strong>Windows PowerShell:</strong></p>
+<p>```powershell</p>
+<p>New-Item -ItemType Directory -Path data -Force</p>
+<p>cd data</p>
+<p>Invoke-WebRequest -Uri &quot;http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot; -OutFile &quot;ml-20m.zip&quot;</p>
+<p>Expand-Archive -Path &quot;ml-20m.zip&quot; -DestinationPath . -Force</p>
+<p>Remove-Item &quot;ml-20m.zip&quot;</p>
+<p>```</p>
 
-<p>After completing Steps 1 &amp; 2, run the verification cell below to check your setup.</p>
-
-<hr>
+<h4>Automatic Download (Slower):</h4>
+<p>Run the cell below. <strong>Note:</strong> This may take 5-10 minutes in Jupyter.</p>
 </div>
-<div class="cell markdown-cell"><h3>Verification Check</h3>
+<div class="cell code-cell"><pre><code># Download dataset (skips if already exists)
+import os
+import urllib.request
+import zipfile
+from pathlib import Path
 
-<p>Run this cell to verify your setup is complete:</p>
+data_dir = Path(&#39;./data/ml-20m&#39;)
+ratings_file = data_dir / &#39;ratings.csv&#39;
+movies_file = data_dir / &#39;movies.csv&#39;
+
+if ratings_file.exists() and movies_file.exists():
+    print(&quot;✓ Dataset already exists!&quot;)
+    print(f&quot;  ratings.csv: {ratings_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+    print(f&quot;  movies.csv: {movies_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+else:
+    print(&quot;⚠️  Downloading dataset in notebook (may be slow)...&quot;)
+    print(&quot;   Recommended: Download manually from browser (see above)&quot;)
+    print(&quot;&quot;)
+    
+    data_dir.parent.mkdir(exist_ok=True)
+    url = &quot;http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;
+    zip_path = data_dir.parent / &#39;ml-20m.zip&#39;
+    
+    try:
+        print(f&quot;Downloading {url}&quot;)
+        print(&quot;Size: ~190MB, this may take 5-10 minutes...&quot;)
+        
+        def progress(block_num, block_size, total_size):
+            downloaded = block_num * block_size
+            percent = min(100, downloaded * 100 / total_size)
+            if block_num % 100 == 0:
+                print(f&quot;\rProgress: {percent:.1f}%&quot;, end=&#39;&#39;)
+        
+        urllib.request.urlretrieve(url, zip_path, progress)
+        print(&quot;\n✓ Download complete&quot;)
+        
+        print(&quot;Extracting...&quot;)
+        with zipfile.ZipFile(zip_path, &#39;r&#39;) as zip_ref:
+            zip_ref.extractall(data_dir.parent)
+        
+        zip_path.unlink()
+        print(&quot;✓ Dataset ready!&quot;)
+        
+    except Exception as e:
+        print(f&quot;\n✗ Error: {e}&quot;)
+        print(&quot;Please download manually from: https://grouplens.org/datasets/movielens/20m/&quot;)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>Step 3: Verify Setup</h3>
+
+<p>Run this cell to check everything is ready:</p>
 </div>
-<div class="cell code-cell"><pre><code># ============================================================================
-# SETUP VERIFICATION
-# ============================================================================
-
+<div class="cell code-cell"><pre><code># Verify setup
 import os
 import sys
 
 print(&quot;Checking setup...&quot;)
 print(&quot;=&quot; * 70)
 
-# Check Python version
 print(f&quot;Python: {sys.version.split()[0]}&quot;)
 
-# Check packages
 print(&quot;\nPackages:&quot;)
 required = [&#39;numpy&#39;, &#39;pandas&#39;, &#39;sklearn&#39;, &#39;matplotlib&#39;, &#39;seaborn&#39;, &#39;networkx&#39;, &#39;scipy&#39;, &#39;tqdm&#39;]
 missing = []
@@ -250,18 +236,16 @@ for pkg in required:
         print(f&quot;  ✗ {pkg}&quot;)
         missing.append(pkg)
 
-# Check directories and create if needed
 print(&quot;\nDirectories:&quot;)
 for d in [&#39;./data&#39;, &#39;./models&#39;, &#39;./figures&#39;]:
-    if not os.path.exists(d):
-        os.makedirs(d)
+    os.makedirs(d, exist_ok=True)
     print(f&quot;  ✓ {d}&quot;)
 
-# Check dataset
 print(&quot;\nDataset:&quot;)
 ratings = &#39;./data/ml-20m/ratings.csv&#39;
 movies = &#39;./data/ml-20m/movies.csv&#39;
 
+data_ok = False
 if os.path.exists(ratings) and os.path.exists(movies):
     r_size = os.path.getsize(ratings) / (1024*1024)
     m_size = os.path.getsize(movies) / (1024*1024)
@@ -270,7 +254,6 @@ if os.path.exists(ratings) and os.path.exists(movies):
     data_ok = True
 else:
     print(&quot;  ✗ Dataset not found&quot;)
-    data_ok = False
 
 print(&quot;=&quot; * 70)
 
@@ -279,55 +262,10 @@ if not missing and data_ok:
 else:
     print(&quot;\n⚠️  Setup incomplete:&quot;)
     if missing:
-        print(f&quot;   Missing packages: {&#39;, &#39;.join(missing)}&quot;)
-        print(&quot;   Run: pip install &quot; + &quot; &quot;.join(missing))
+        print(f&quot;   - Missing: {&#39;, &#39;.join(missing)}&quot;)
     if not data_ok:
-        print(&quot;   Dataset not downloaded&quot;)
-        print(&quot;   Run the download script from Step 2 above&quot;)
+        print(&quot;   - Dataset not downloaded&quot;)
 </code></pre></div>
-<div class="cell markdown-cell"><h2>1. Introduction</h2>
-
-<h3>Objectives</h3>
-
-<li>Implement 5 collaborative filtering algorithms</li>
-<li>Compare rating prediction vs. ranking quality</li>
-<li>Analyze movie clusters and dimensionality reduction</li>
-
-<h3>Research Questions</h3>
-
-<ul>
-<li>Which algorithm works best for MovieLens?</li>
-<li>How do graph-based methods compare to traditional CF?</li>
-<li>Can clustering reveal meaningful movie groups?</li>
-</ul>
-
-<hr></div>
-<div class="cell markdown-cell"><h2>2. Dataset: MovieLens 20M</h2>
-
-<p>- <strong>20M ratings</strong> from 138k users on 27k movies</p>
-<ul>
-<li>Rating scale: 0.5-5.0 stars</li>
-<li>Sparsity: ~99.5%</li>
-<li>Sample: 2M ratings for efficiency</li>
-</ul>
-
-<hr></div>
-<div class="cell markdown-cell"><h2>3. Methodology</h2>
-
-<h3>Recommendation Algorithms</h3>
-
-<p><strong>SVD</strong>: Matrix factorization R ≈ U×Σ×V^T  </p>
-<p><strong>ALS</strong>: Alternating least squares optimization  </p>
-<p><strong>ItemKNN</strong>: Item-based collaborative filtering  </p>
-<p><strong>PageRank</strong>: Graph-based with bipartite network  </p>
-<p><strong>Hybrid</strong>: Combines SVD + PageRank</p>
-
-<h3>Evaluation Metrics</h3>
-
-<p><strong>Rating</strong>: MAE, RMSE (lower better)  </p>
-<p><strong>Ranking</strong>: Precision@K, Recall@K, NDCG@K (higher better)</p>
-
-<hr></div>
 <div class="cell markdown-cell"><h2>4. Implementation</h2>
 
 <h3>Embedded Modules</h3>
