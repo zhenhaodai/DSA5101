@@ -1,320 +1,78 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DSA5101 Assignment: MovieLens Analysis</title>
+    <title>DSA5101 MovieLens Analysis</title>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-            line-height: 1.6;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
-        }
-        .cell {
-            background: white;
-            margin: 15px 0;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .markdown {
-            color: #333;
-        }
-        .markdown h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 10px;
-        }
-        .markdown h2 {
-            color: #34495e;
-            border-bottom: 2px solid #95a5a6;
-            padding-bottom: 8px;
-            margin-top: 30px;
-        }
-        .markdown h3 {
-            color: #555;
-        }
-        .markdown code {
-            background: #f8f8f8;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9em;
-        }
-        .markdown pre {
-            background: #f8f8f8;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            border-left: 4px solid #3498db;
-        }
-        .code {
-            background: #2d2d2d;
-            color: #f8f8f2;
-            padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
-            font-family: 'Monaco', 'Menlo', monospace;
-            font-size: 0.9em;
-        }
-        .code-header {
-            background: #1e1e1e;
-            color: #aaa;
-            padding: 8px 15px;
-            border-radius: 5px 5px 0 0;
-            font-size: 0.85em;
-            margin: 15px 0 0 0;
-        }
-        .code pre {
-            margin: 0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .toc {
-            background: #ecf0f1;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-        }
-        .toc ul {
-            list-style-type: none;
-            padding-left: 20px;
-        }
-        .toc li {
-            margin: 8px 0;
-        }
-        .toc a {
-            color: #2980b9;
-            text-decoration: none;
-        }
-        .toc a:hover {
-            text-decoration: underline;
-        }
-        hr {
-            border: none;
-            border-top: 2px solid #ecf0f1;
-            margin: 30px 0;
-        }
+        body { font-family: -apple-system, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        .cell { background: white; margin: 15px 0; padding: 15px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .markdown h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
+        .markdown h2 { color: #34495e; border-bottom: 2px solid #95a5a6; margin-top: 30px; }
+        .code { background: #2d2d2d; color: #f8f8f2; padding: 15px; border-radius: 5px; font-family: monospace; white-space: pre-wrap; }
+        .code-header { background: #1e1e1e; color: #aaa; padding: 8px 15px; font-size: 0.9em; }
+        hr { border: none; border-top: 2px solid #ecf0f1; margin: 30px 0; }
     </style>
 </head>
 <body>
 <div class="cell markdown">
-<h1>DSA5101 Assignment: Recommendation Systems Analysis</h1>
-<br>
-<p><strong>Student:<strong> [Your Name] | <strong>ID:<strong> [Your ID] | <strong>Date:<strong> 2024-2025</p>
-<br>
-<h2>MovieLens 20M: Comprehensive Analysis</h2>
-<br>
-<p>This notebook implements and evaluates <strong>5 recommendation algorithms<strong> and <strong>2 clustering methods<strong> on the MovieLens 20M dataset.</p>
-<br>
-<p><strong>Algorithms:<strong> SVD • ALS • ItemKNN • PageRank • Hybrid  </p>
-<p><strong>Clustering:<strong> K-means • Hierarchical • PCA</p>
-<br>
-<hr>
+<h1>DSA5101 Assignment: Recommendation Systems Analysis</h1><p><strong>Student:<strong> [Your Name] | <strong>ID:<strong> [Your ID] | <strong>Date:<strong> 2024-2025</p><h2>MovieLens 20M: Comprehensive Analysis</h2><p>This notebook implements and evaluates <strong>5 recommendation algorithms<strong> and <strong>2 clustering methods<strong> on the MovieLens 20M dataset.</p><p><strong>Algorithms:<strong> SVD • ALS • ItemKNN • PageRank • Hybrid  </p><p><strong>Clustering:<strong> K-means • Hierarchical • PCA</p><hr>
 </div>
 <div class="cell markdown">
-<h2>Contents</h2>
-<br>
-<p>1. <strong>Introduction<strong> - Motivation and objectives</p>
-<p>2. <strong>Dataset<strong> - MovieLens 20M description</p>
-<p>3. <strong>Methodology<strong> - Algorithm descriptions</p>
-<p>4. <strong>Implementation<strong> - Code and training</p>
-<p>5. <strong>Results<strong> - Performance comparison</p>
-<p>6. <strong>Discussion<strong> - Analysis and insights</p>
-<p>7. <strong>Conclusion<strong> - Key findings</p>
-<br>
-<hr>
+<h2>Contents</h2><p>1. <strong>Introduction<strong> - Motivation and objectives</p><p>2. <strong>Dataset<strong> - MovieLens 20M description</p><p>3. <strong>Methodology<strong> - Algorithm descriptions</p><p>4. <strong>Implementation<strong> - Code and training</p><p>5. <strong>Results<strong> - Performance comparison</p><p>6. <strong>Discussion<strong> - Analysis and insights</p><p>7. <strong>Conclusion<strong> - Key findings</p><hr>
 </div>
 <div class="cell markdown">
-<h2>1. Introduction</h2>
-<br>
-<h3>Objectives</h3>
-<br>
-<p>1. Implement 5 collaborative filtering algorithms</p>
-<p>2. Compare rating prediction vs. ranking quality</p>
-<p>3. Analyze movie clusters and dimensionality reduction</p>
-<br>
-<h3>Research Questions</h3>
-<br>
-<ul>
-<li>Which algorithm works best for MovieLens?</li>
-<li>How do graph-based methods compare to traditional CF?</li>
-<li>Can clustering reveal meaningful movie groups?</li>
-</ul>
-<br>
-<hr>
+<h2>1. Introduction</h2><h3>Objectives</h3><p>1. Implement 5 collaborative filtering algorithms</p><p>2. Compare rating prediction vs. ranking quality</p><p>3. Analyze movie clusters and dimensionality reduction</p><h3>Research Questions</h3><p>- Which algorithm works best for MovieLens?</p><p>- How do graph-based methods compare to traditional CF?</p><p>- Can clustering reveal meaningful movie groups?</p><hr>
 </div>
 <div class="cell markdown">
-<h2>2. Dataset: MovieLens 20M</h2>
-<br>
-<ul>
-<li><strong>20M ratings<strong> from 138k users on 27k movies</li>
-<li>Rating scale: 0.5-5.0 stars</li>
-<li>Sparsity: ~99.5%</li>
-<li>Sample: 2M ratings for efficiency</li>
-</ul>
-<br>
-<hr>
+<h2>2. Dataset: MovieLens 20M</h2><p>- <strong>20M ratings<strong> from 138k users on 27k movies</p><p>- Rating scale: 0.5-5.0 stars</p><p>- Sparsity: ~99.5%</p><p>- Sample: 2M ratings for efficiency</p><hr>
 </div>
 <div class="cell markdown">
-<h2>3. Methodology</h2>
-<br>
-<h3>Recommendation Algorithms</h3>
-<br>
-<p><strong>SVD<strong>: Matrix factorization R ≈ U×Σ×V^T  </p>
-<p><strong>ALS<strong>: Alternating least squares optimization  </p>
-<p><strong>ItemKNN<strong>: Item-based collaborative filtering  </p>
-<p><strong>PageRank<strong>: Graph-based with bipartite network  </p>
-<p><strong>Hybrid<strong>: Combines SVD + PageRank</p>
-<br>
-<h3>Evaluation Metrics</h3>
-<br>
-<p><strong>Rating<strong>: MAE, RMSE (lower better)  </p>
-<p><strong>Ranking<strong>: Precision@K, Recall@K, NDCG@K (higher better)</p>
-<br>
-<hr>
+<h2>3. Methodology</h2><h3>Recommendation Algorithms</h3><p><strong>SVD<strong>: Matrix factorization R ≈ U×Σ×V^T  </p><p><strong>ALS<strong>: Alternating least squares optimization  </p><p><strong>ItemKNN<strong>: Item-based collaborative filtering  </p><p><strong>PageRank<strong>: Graph-based with bipartite network  </p><p><strong>Hybrid<strong>: Combines SVD + PageRank</p><h3>Evaluation Metrics</h3><p><strong>Rating<strong>: MAE, RMSE (lower better)  </p><p><strong>Ranking<strong>: Precision@K, Recall@K, NDCG@K (higher better)</p><hr>
 </div>
 <div class="cell markdown">
-<h2>4. Implementation</h2>
-<br>
-<h3>Embedded Modules</h3>
-<br>
-<p>All source code is self-contained in this notebook.</p>
+<h2>4. Implementation</h2><h3>Embedded Modules</h3><p>All source code is self-contained in this notebook.</p>
 </div>
 <div class="cell markdown">
 <p>#### Data Loader</p>
 </div>
 <div class="code-header">Code Cell 1</div>
-<div class="cell code"><pre>import os
-import pandas as pd
-import numpy as np
-from typing import Tuple, Optional
+<div class="cell code"># ============================================================================
+# DATA LOADING
+# ============================================================================
 
+# Initialize data loader
+# This class handles all data loading and preprocessing operations
+loader = MovieLensLoader(data_dir=&#x27;./data&#x27;)
 
-class MovieLensLoader:
+try:
+    # Load dataset with sampling
+    # Using 2M sample (10% of full 20M) for computational efficiency
+    # sample_size=None would load full dataset (not recommended - very slow)
+    loader.load_data(sample_size=2000000)
 
-    def __init__(self, data_dir: str = &#x27;./data&#x27;):
-        self.data_dir = data_dir
-        self.ratings = None
-        self.movies = None
-        self.tags = None
-        self.genome_scores = None
+    # Display comprehensive statistics
+    print(f&quot;✓ Dataset loaded successfully!&quot;)
+    print(f&quot;\n  Dataset Statistics:&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Total ratings:    {len(loader.ratings):,}&quot;)
+    print(f&quot;  Unique users:     {loader.ratings[&#x27;userId&#x27;].nunique():,}&quot;)
+    print(f&quot;  Unique movies:    {loader.ratings[&#x27;movieId&#x27;].nunique():,}&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Rating range:     {loader.ratings[&#x27;rating&#x27;].min():.1f} - {loader.ratings[&#x27;rating&#x27;].max():.1f}&quot;)
+    print(f&quot;  Average rating:   {loader.ratings[&#x27;rating&#x27;].mean():.2f}&quot;)
+    print(f&quot;  Median rating:    {loader.ratings[&#x27;rating&#x27;].median():.1f}&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
 
-    def load_data(self, sample_size: Optional[int] = None) -&gt; None:
-        print(&quot;Loading data...&quot;)
-
-        ratings_path = os.path.join(self.data_dir, &#x27;ml-20m&#x27;, &#x27;ratings.csv&#x27;)
-        if sample_size:
-            self.ratings = pd.read_csv(ratings_path, nrows=sample_size)
-        else:
-            self.ratings = pd.read_csv(ratings_path)
-        print(f&quot;Loaded {len(self.ratings)} ratings&quot;)
-
-        movies_path = os.path.join(self.data_dir, &#x27;ml-20m&#x27;, &#x27;movies.csv&#x27;)
-        self.movies = pd.read_csv(movies_path)
-        print(f&quot;Loaded {len(self.movies)} &quot;)
-
-        try:
-            tags_path = os.path.join(self.data_dir, &#x27;ml-20m&#x27;, &#x27;tags.csv&#x27;)
-            self.tags = pd.read_csv(tags_path)
-            print(f&quot;Loaded {len(self.tags)} &quot;)
-        except FileNotFoundError:
-            print(&quot;，&quot;)
-
-        try:
-            genome_path = os.path.join(self.data_dir, &#x27;ml-20m&#x27;, &#x27;genome-scores.csv&#x27;)
-            if sample_size:
-                self.genome_scores = pd.read_csv(genome_path, nrows=sample_size*100)
-            else:
-                self.genome_scores = pd.read_csv(genome_path)
-            print(f&quot;Loaded {len(self.genome_scores)}  genome scores&quot;)
-        except FileNotFoundError:
-            print(&quot;Genome scores ，&quot;)
-
-    def preprocess_for_recommendation(self,
-                                     min_user_ratings: int = 20,
-                                     min_movie_ratings: int = 20) -&gt; Tuple[pd.DataFrame, np.ndarray]:
-        print(&quot;\nPreprocessing data...&quot;)
-
-        user_counts = self.ratings[&#x27;userId&#x27;].value_counts()
-        movie_counts = self.ratings[&#x27;movieId&#x27;].value_counts()
-
-        active_users = user_counts[user_counts &gt;= min_user_ratings].index
-        popular_movies = movie_counts[movie_counts &gt;= min_movie_ratings].index
-
-        filtered_ratings = self.ratings[
-            (self.ratings[&#x27;userId&#x27;].isin(active_users)) &amp;
-            (self.ratings[&#x27;movieId&#x27;].isin(popular_movies))
-        ]
-
-        print(f&quot;: {len(filtered_ratings)} , &quot;
-              f&quot;{filtered_ratings[&#x27;userId&#x27;].nunique()} , &quot;
-              f&quot;{filtered_ratings[&#x27;movieId&#x27;].nunique()} &quot;)
-
-        user_movie_matrix = filtered_ratings.pivot_table(
-            index=&#x27;userId&#x27;,
-            columns=&#x27;movieId&#x27;,
-            values=&#x27;rating&#x27;,
-            fill_value=0
-        )
-
-        return user_movie_matrix, filtered_ratings
-
-    def create_movie_features(self, use_genome: bool = True) -&gt; pd.DataFrame:
-        print(&quot;\n...&quot;)
-
-        if use_genome and self.genome_scores is not None:
-            genome_pivot = self.genome_scores.pivot_table(
-                index=&#x27;movieId&#x27;,
-                columns=&#x27;tagId&#x27;,
-                values=&#x27;relevance&#x27;,
-                fill_value=0
-            )
-
-            common_movies = list(set(genome_pivot.index) &amp; set(self.movies[&#x27;movieId&#x27;]))
-            movie_features = genome_pivot.loc[common_movies]
-
-            print(f&quot; {movie_features.shape[0]}  {movie_features.shape[1]} &quot;)
-
-        else:
-            print(&quot;...&quot;)
-
-            all_genres = set()
-            for genres in self.movies[&#x27;genres&#x27;]:
-                if genres != &#x27;(no genres listed)&#x27;:
-                    all_genres.update(genres.split(&#x27;|&#x27;))
-            all_genres = sorted(list(all_genres))
-
-            genre_features = []
-            movie_ids = []
-
-            for _, row in self.movies.iterrows():
-                genres = row[&#x27;genres&#x27;].split(&#x27;|&#x27;)
-                feature = [1 if g in genres else 0 for g in all_genres]
-                genre_features.append(feature)
-                movie_ids.append(row[&#x27;movieId&#x27;])
-
-            movie_features = pd.DataFrame(
-                genre_features,
-                index=movie_ids,
-                columns=all_genres
-            )
-
-            print(f&quot; {movie_features.shape[0]}  {movie_features.shape[1]} （）&quot;)
-
-        return movie_features
-
-    def get_movie_info(self, movie_ids):
-        return self.movies[self.movies[&#x27;movieId&#x27;].isin(movie_ids)]
-</pre></div>
+except FileNotFoundError:
+    print(&quot;✗ Error: Data files not found!&quot;)
+    print(&quot;\nDownload instructions:&quot;)
+    print(&quot;  wget http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;)
+    print(&quot;  unzip ml-20m.zip -d data/&quot;)</div>
 <div class="cell markdown">
 <p>#### Evaluation Metrics</p>
 </div>
 <div class="code-header">Code Cell 2</div>
-<div class="cell code"><pre>import numpy as np
+<div class="cell code">import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Set
 from collections import defaultdict
@@ -498,12 +256,12 @@ def create_relevance_set(test_ratings: pd.DataFrame,
             relevance[row[&#x27;userId&#x27;]].add(row[&#x27;movieId&#x27;])
 
     return dict(relevance)
-</pre></div>
+</div>
 <div class="cell markdown">
 <p>#### Recommender Systems</p>
 </div>
 <div class="code-header">Code Cell 3</div>
-<div class="cell code"><pre>import numpy as np
+<div class="cell code">import numpy as np
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
@@ -1258,12 +1016,12 @@ class ItemKNNRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}</pre></div>
+            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}</div>
 <div class="cell markdown">
 <p>#### Clustering</p>
 </div>
 <div class="code-header">Code Cell 4</div>
-<div class="cell code"><pre>import numpy as np
+<div class="cell code">import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
@@ -1487,12 +1245,12 @@ class DimensionalityReducer:
             },
             &#x27;pca&#x27;: self.pca
         }
-</pre></div>
+</div>
 <div class="cell markdown">
 <p>#### Visualization</p>
 </div>
 <div class="code-header">Code Cell 5</div>
-<div class="cell code"><pre>import matplotlib.pyplot as plt
+<div class="cell code">import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
@@ -1684,14 +1442,12 @@ class Visualizer:
         plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
-</pre></div>
+</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h3>Setup</h3>
+<hr><h3>Setup</h3>
 </div>
 <div class="code-header">Code Cell 6</div>
-<div class="cell code"><pre>import warnings
+<div class="cell code">import warnings
 warnings.filterwarnings(&#x27;ignore&#x27;)
 import numpy as np
 import pandas as pd
@@ -1700,31 +1456,85 @@ from tqdm import tqdm
 import os
 os.makedirs(&#x27;./figures&#x27;, exist_ok=True)
 os.makedirs(&#x27;./models&#x27;, exist_ok=True)
-print(&quot;✓ Environment ready&quot;)</pre></div>
+print(&quot;✓ Environment ready&quot;)</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h3>Data Loading</h3>
+<hr><h3>Data Loading</h3>
 </div>
 <div class="code-header">Code Cell 7</div>
-<div class="cell code"><pre>loader = MovieLensLoader(data_dir=&#x27;./data&#x27;)
+<div class="cell code"># ============================================================================
+# DATA LOADING
+# ============================================================================
+
+# Initialize data loader
+# This class handles all data loading and preprocessing operations
+loader = MovieLensLoader(data_dir=&#x27;./data&#x27;)
+
 try:
+    # Load dataset with sampling
+    # Using 2M sample (10% of full 20M) for computational efficiency
+    # sample_size=None would load full dataset (not recommended - very slow)
     loader.load_data(sample_size=2000000)
-    print(f&quot;✓ Loaded {len(loader.ratings):,} ratings&quot;)
-except:
-    print(&quot;✗ Data not found. Download from: https://grouplens.org/datasets/movielens/20m/&quot;)</pre></div>
+
+    # Display comprehensive statistics
+    print(f&quot;✓ Dataset loaded successfully!&quot;)
+    print(f&quot;\n  Dataset Statistics:&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Total ratings:    {len(loader.ratings):,}&quot;)
+    print(f&quot;  Unique users:     {loader.ratings[&#x27;userId&#x27;].nunique():,}&quot;)
+    print(f&quot;  Unique movies:    {loader.ratings[&#x27;movieId&#x27;].nunique():,}&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Rating range:     {loader.ratings[&#x27;rating&#x27;].min():.1f} - {loader.ratings[&#x27;rating&#x27;].max():.1f}&quot;)
+    print(f&quot;  Average rating:   {loader.ratings[&#x27;rating&#x27;].mean():.2f}&quot;)
+    print(f&quot;  Median rating:    {loader.ratings[&#x27;rating&#x27;].median():.1f}&quot;)
+    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+
+except FileNotFoundError:
+    print(&quot;✗ Error: Data files not found!&quot;)
+    print(&quot;\nDownload instructions:&quot;)
+    print(&quot;  wget http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;)
+    print(&quot;  unzip ml-20m.zip -d data/&quot;)</div>
 <div class="cell markdown">
 <h3>Preprocessing</h3>
 </div>
 <div class="code-header">Code Cell 8</div>
-<div class="cell code"><pre>user_movie_matrix, filtered_ratings = loader.preprocess_for_recommendation(min_user_ratings=50, min_movie_ratings=50)
-sparsity = (1 - len(filtered_ratings) / (user_movie_matrix.shape[0] * user_movie_matrix.shape[1])) * 100
-print(f&quot;Matrix: {user_movie_matrix.shape}, Sparsity: {sparsity:.2f}%&quot;)</pre></div>
+<div class="cell code"># ============================================================================
+# DATA PREPROCESSING
+# ============================================================================
+
+# Apply filtering to ensure data quality
+# Why filter?
+# 1. Users with few ratings: Can&#x27;t learn preferences reliably
+# 2. Movies with few ratings: Statistics are noisy and unreliable
+# 3. Reduces sparsity and improves model quality
+
+user_movie_matrix, filtered_ratings = loader.preprocess_for_recommendation(
+    min_user_ratings=50,   # Keep active users (rated at least 50 movies)
+    min_movie_ratings=50   # Keep popular movies (rated by at least 50 users)
+)
+
+# Display results and statistics
+print(f&quot;✓ Preprocessing complete!&quot;)
+print(f&quot;\n  Filtered Dataset:&quot;)
+print(f&quot;  {&#x27;=&#x27;*60}&quot;)
+print(f&quot;  Matrix shape:     {user_movie_matrix.shape[0]:,} users × {user_movie_matrix.shape[1]:,} movies&quot;)
+print(f&quot;  Total ratings:    {len(filtered_ratings):,}&quot;)
+print(f&quot;  {&#x27;=&#x27;*60}&quot;)
+
+# Calculate sparsity (percentage of empty cells)
+# Higher sparsity = more challenging for recommendation
+n_possible_ratings = user_movie_matrix.shape[0] * user_movie_matrix.shape[1]
+sparsity = (1 - len(filtered_ratings) / n_possible_ratings) * 100
+
+print(f&quot;  Sparsity:         {sparsity:.2f}% (typical for recommendation systems)&quot;)
+print(f&quot;  Density:          {100-sparsity:.2f}%&quot;)
+print(f&quot;  {&#x27;=&#x27;*60}&quot;)
+print(f&quot;\n  Avg ratings/user:  {len(filtered_ratings) / filtered_ratings[&#x27;userId&#x27;].nunique():.1f}&quot;)
+print(f&quot;  Avg ratings/movie: {len(filtered_ratings) / filtered_ratings[&#x27;movieId&#x27;].nunique():.1f}&quot;)</div>
 <div class="cell markdown">
 <h3>Train-Test Split</h3>
 </div>
 <div class="code-header">Code Cell 9</div>
-<div class="cell code"><pre>train_list, test_list = [], []
+<div class="cell code">train_list, test_list = [], []
 for uid in filtered_ratings[&#x27;userId&#x27;].unique():
     ur = filtered_ratings[filtered_ratings[&#x27;userId&#x27;]==uid].sample(frac=1, random_state=42)
     n = max(1, int(len(ur)*0.2))
@@ -1733,12 +1543,12 @@ for uid in filtered_ratings[&#x27;userId&#x27;].unique():
 train_ratings = pd.concat(train_list, ignore_index=True)
 test_ratings = pd.concat(test_list, ignore_index=True)
 train_matrix = train_ratings.pivot_table(index=&#x27;userId&#x27;, columns=&#x27;movieId&#x27;, values=&#x27;rating&#x27;, fill_value=0)
-print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)</pre></div>
+print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)</div>
 <div class="cell markdown">
 <h3>Helper Functions</h3>
 </div>
 <div class="code-header">Code Cell 10</div>
-<div class="cell code"><pre>def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
+<div class="cell code">def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
     user_relevant = create_relevance_set(test_ratings, threshold=4.0)
     sampled_users = list(user_relevant.keys())[:sample_users]
     user_recommendations = {}
@@ -1751,37 +1561,69 @@ print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)<
     return evaluator.evaluate_recommendations(
         user_recommendations,
         {uid: user_relevant[uid] for uid in user_recommendations if uid in user_relevant}, k=k)
-print(&quot;✓ Helper defined&quot;)</pre></div>
+print(&quot;✓ Helper defined&quot;)</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h2>Model Training</h2>
-<br>
-<p><strong>Note:<strong> Training can be slow (especially PageRank ~10-30 min). </p>
-<br>
-<p>Set <code>TRAIN_MODELS = False<code> to skip training and show cached results.</p>
+<hr><h2>Model Training</h2><p><strong>Note:<strong> Training can be slow (especially PageRank ~10-30 min). </p><p>Set `TRAIN_MODELS = False` to skip training and show cached results.</p>
 </div>
 <div class="code-header">Code Cell 11</div>
-<div class="cell code"><pre>TRAIN_MODELS = True  # Change to False to skip training</pre></div>
+<div class="cell code">TRAIN_MODELS = True  # Change to False to skip training</div>
 <div class="cell markdown">
 <h3>SVD</h3>
 </div>
 <div class="code-header">Code Cell 12</div>
-<div class="cell code"><pre>if TRAIN_MODELS:
+<div class="cell code"># ============================================================================
+# SVD RECOMMENDER TRAINING
+# ============================================================================
+print(&quot;=&quot;*80)
+print(&quot;1. SVD (Singular Value Decomposition) - Traditional Matrix Factorization&quot;)
+print(&quot;=&quot;*80)
+
+if TRAIN_MODELS:
+    # Train SVD model
+    # SVD decomposes rating matrix R ≈ U × Σ × V^T
+    # where U = user factors, V = item factors
+    print(&quot;\nTraining SVD with 200 latent factors...&quot;)
+    
     svd_recommender = SVDRecommender(n_components=200)
     svd_recommender.fit(train_matrix)
+
+    # Evaluate on test set
+    # Uses sampling (10k samples) for faster evaluation
+    print(&quot;\nEvaluating SVD on test set...&quot;)
     svd_metrics = svd_recommender.evaluate(test_ratings)
-    svd_ranking = evaluate_ranking_quality(svd_recommender, test_ratings)
-    print(f&quot;SVD: MAE={svd_metrics[&#x27;MAE&#x27;]:.4f}, Precision@10={svd_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+    
+    print(f&quot;\nRating Prediction Metrics:&quot;)
+    print(f&quot;  MAE:  {svd_metrics[&#x27;MAE&#x27;]:.4f} (Mean Absolute Error - lower is better)&quot;)
+    print(f&quot;  RMSE: {svd_metrics[&#x27;RMSE&#x27;]:.4f} (Root Mean Squared Error - lower is better)&quot;)
+
+    # Evaluate ranking quality
+    print(&quot;\nEvaluating ranking quality (Precision, Recall, NDCG)...&quot;)
+    svd_ranking = evaluate_ranking_quality(svd_recommender, test_ratings, k=10, sample_users=500)
+
+    # Save trained model for future use
+    save_model(svd_recommender, &#x27;svd_recommender.pkl&#x27;)
+    save_model(svd_metrics, &#x27;svd_metrics.pkl&#x27;)
+    save_model(svd_ranking, &#x27;svd_ranking.pkl&#x27;)
+    
 else:
-    print(&quot;Skipped - using cached results&quot;)
-    svd_metrics = {&#x27;MAE&#x27;: 2.60, &#x27;RMSE&#x27;: 3.45}
-    svd_ranking = {&#x27;Precision@10&#x27;: 0.12, &#x27;Recall@10&#x27;: 0.08, &#x27;NDCG@10&#x27;: 0.15, &#x27;HitRate@10&#x27;: 0.45}</pre></div>
+    # Load pre-trained model (faster option)
+    print(&quot;\nLoading pre-trained SVD model from disk...&quot;)
+    svd_recommender = load_model(&#x27;svd_recommender.pkl&#x27;)
+    svd_metrics = load_model(&#x27;svd_metrics.pkl&#x27;)
+    svd_ranking = load_model(&#x27;svd_ranking.pkl&#x27;)
+
+    if svd_recommender:
+        print(f&quot;\n✓ Loaded successfully!&quot;)
+        print(f&quot;  MAE: {svd_metrics[&#x27;MAE&#x27;]:.4f} | RMSE: {svd_metrics[&#x27;RMSE&#x27;]:.4f}&quot;)
+        print(f&quot;  Precision@10: {svd_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+        print(f&quot;  Recall@10: {svd_ranking[&#x27;Recall@10&#x27;]:.4f}&quot;)
+
+print(&quot;\n✓ SVD complete\n&quot;)</div>
 <div class="cell markdown">
 <h3>PageRank (slow ~10-30 min)</h3>
 </div>
 <div class="code-header">Code Cell 13</div>
-<div class="cell code"><pre>if TRAIN_MODELS:
+<div class="cell code">if TRAIN_MODELS:
     print(&quot;⚠ This may take 10-30 minutes...&quot;)
     pr_recommender = PageRankRecommender(alpha=0.85, cf_weight=0.5)
     pr_recommender.fit(train_matrix)
@@ -1791,12 +1633,12 @@ else:
 else:
     print(&quot;Skipped - using cached results&quot;)
     pr_metrics = {&#x27;MAE&#x27;: 1.85, &#x27;RMSE&#x27;: 2.42}
-    pr_ranking = {&#x27;Precision@10&#x27;: 0.18, &#x27;Recall@10&#x27;: 0.12, &#x27;NDCG@10&#x27;: 0.22, &#x27;HitRate@10&#x27;: 0.58}</pre></div>
+    pr_ranking = {&#x27;Precision@10&#x27;: 0.18, &#x27;Recall@10&#x27;: 0.12, &#x27;NDCG@10&#x27;: 0.22, &#x27;HitRate@10&#x27;: 0.58}</div>
 <div class="cell markdown">
 <h3>Hybrid</h3>
 </div>
 <div class="code-header">Code Cell 14</div>
-<div class="cell code"><pre>if TRAIN_MODELS and &#x27;svd_recommender&#x27; in locals() and &#x27;pr_recommender&#x27; in locals():
+<div class="cell code">if TRAIN_MODELS and &#x27;svd_recommender&#x27; in locals() and &#x27;pr_recommender&#x27; in locals():
     hybrid_recommender = HybridRecommender(svd_recommender, pr_recommender, svd_weight=0.5)
     hybrid_metrics = hybrid_recommender.evaluate(test_ratings)
     hybrid_ranking = evaluate_ranking_quality(hybrid_recommender, test_ratings)
@@ -1804,12 +1646,12 @@ else:
 else:
     print(&quot;Skipped - using cached results&quot;)
     hybrid_metrics = {&#x27;MAE&#x27;: 2.15, &#x27;RMSE&#x27;: 2.88}
-    hybrid_ranking = {&#x27;Precision@10&#x27;: 0.16, &#x27;Recall@10&#x27;: 0.11, &#x27;NDCG@10&#x27;: 0.19, &#x27;HitRate@10&#x27;: 0.54}</pre></div>
+    hybrid_ranking = {&#x27;Precision@10&#x27;: 0.16, &#x27;Recall@10&#x27;: 0.11, &#x27;NDCG@10&#x27;: 0.19, &#x27;HitRate@10&#x27;: 0.54}</div>
 <div class="cell markdown">
 <h3>ALS</h3>
 </div>
 <div class="code-header">Code Cell 15</div>
-<div class="cell code"><pre>if TRAIN_MODELS:
+<div class="cell code">if TRAIN_MODELS:
     als_recommender = ALSRecommender(n_factors=100, n_iterations=10, regularization=0.01)
     als_recommender.fit(train_matrix)
     als_metrics = als_recommender.evaluate(test_ratings)
@@ -1818,12 +1660,12 @@ else:
 else:
     print(&quot;Skipped - using cached results&quot;)
     als_metrics = {&#x27;MAE&#x27;: 0.90, &#x27;RMSE&#x27;: 1.18}
-    als_ranking = {&#x27;Precision@10&#x27;: 0.22, &#x27;Recall@10&#x27;: 0.15, &#x27;NDCG@10&#x27;: 0.28, &#x27;HitRate@10&#x27;: 0.68}</pre></div>
+    als_ranking = {&#x27;Precision@10&#x27;: 0.22, &#x27;Recall@10&#x27;: 0.15, &#x27;NDCG@10&#x27;: 0.28, &#x27;HitRate@10&#x27;: 0.68}</div>
 <div class="cell markdown">
 <h3>ItemKNN</h3>
 </div>
 <div class="code-header">Code Cell 16</div>
-<div class="cell code"><pre>if TRAIN_MODELS:
+<div class="cell code">if TRAIN_MODELS:
     itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric=&#x27;cosine&#x27;)
     itemknn_recommender.fit(train_matrix)
     itemknn_metrics = itemknn_recommender.evaluate(test_ratings)
@@ -1832,16 +1674,12 @@ else:
 else:
     print(&quot;Skipped - using cached results&quot;)
     itemknn_metrics = {&#x27;MAE&#x27;: 0.85, &#x27;RMSE&#x27;: 1.12}
-    itemknn_ranking = {&#x27;Precision@10&#x27;: 0.24, &#x27;Recall@10&#x27;: 0.16, &#x27;NDCG@10&#x27;: 0.30, &#x27;HitRate@10&#x27;: 0.72}</pre></div>
+    itemknn_ranking = {&#x27;Precision@10&#x27;: 0.24, &#x27;Recall@10&#x27;: 0.16, &#x27;NDCG@10&#x27;: 0.30, &#x27;HitRate@10&#x27;: 0.72}</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h2>5. Results</h2>
-<br>
-<h3>Performance Comparison</h3>
+<h2>5. Results</h2><h3>5.1 Performance Comparison</h3><p>This section presents comprehensive evaluation results for all 5 recommendation algorithms.</p><p><strong>Evaluation Methodology:<strong></p><p>- <strong>Rating Prediction:<strong> Evaluated on 10,000 test samples (sampled from 340k for efficiency)</p><p>- <strong>Ranking Quality:<strong> Evaluated on 500 users (generating top-10 recommendations)</p><p>- <strong>Metrics:<strong> MAE, RMSE for ratings; Precision@10, Recall@10, NDCG@10 for ranking</p><p><strong>What to Look For:<strong></p><p>1. <strong>Best MAE/RMSE:<strong> Which algorithm predicts ratings most accurately?</p><p>2. <strong>Best NDCG@10:<strong> Which algorithm recommends the most relevant items?</p><p>3. <strong>Trade-offs:<strong> Does the best rating predictor also have the best ranking quality?</p><hr><h3>5.2 Results Tables</h3><p>The following tables compare all algorithms across multiple metrics.</p>
 </div>
 <div class="code-header">Code Cell 17</div>
-<div class="cell code"><pre># Rating prediction
+<div class="cell code"># Rating prediction
 rating_df = pd.DataFrame({
     &#x27;Model&#x27;: [&#x27;SVD&#x27;, &#x27;ALS&#x27;, &#x27;ItemKNN&#x27;, &#x27;PageRank&#x27;, &#x27;Hybrid&#x27;],
     &#x27;MAE&#x27;: [svd_metrics[&#x27;MAE&#x27;], als_metrics[&#x27;MAE&#x27;], itemknn_metrics[&#x27;MAE&#x27;], pr_metrics[&#x27;MAE&#x27;], hybrid_metrics[&#x27;MAE&#x27;]],
@@ -1863,12 +1701,12 @@ print(ranking_df.to_string(index=False))
 
 # Best models
 print(f&quot;\nBest Rating: {rating_df.iloc[0][&#x27;Model&#x27;]} (MAE={rating_df.iloc[0][&#x27;MAE&#x27;]:.4f})&quot;)
-print(f&quot;Best Ranking: {ranking_df.iloc[0][&#x27;Model&#x27;]} (NDCG@10={ranking_df.iloc[0][&#x27;NDCG@10&#x27;]:.4f})&quot;)</pre></div>
+print(f&quot;Best Ranking: {ranking_df.iloc[0][&#x27;Model&#x27;]} (NDCG@10={ranking_df.iloc[0][&#x27;NDCG@10&#x27;]:.4f})&quot;)</div>
 <div class="cell markdown">
 <h3>Visualization</h3>
 </div>
 <div class="code-header">Code Cell 18</div>
-<div class="cell code"><pre>plt.figure(figsize=(12, 5))
+<div class="cell code">plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
 plt.barh(rating_df[&#x27;Model&#x27;], rating_df[&#x27;MAE&#x27;], color=&#x27;steelblue&#x27;)
 plt.xlabel(&#x27;MAE (lower better)&#x27;)
@@ -1879,14 +1717,12 @@ plt.xlabel(&#x27;NDCG@10 (higher better)&#x27;)
 plt.title(&#x27;Ranking Quality Performance&#x27;)
 plt.tight_layout()
 plt.savefig(&#x27;./figures/performance_comparison.png&#x27;, dpi=300, bbox_inches=&#x27;tight&#x27;)
-plt.show()</pre></div>
+plt.show()</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h2>Clustering Analysis</h2>
+<hr><h2>Clustering Analysis</h2>
 </div>
 <div class="code-header">Code Cell 19</div>
-<div class="cell code"><pre># Create movie features
+<div class="cell code"># Create movie features
 movie_features = loader.create_movie_features(use_genome=False)
 print(f&quot;Features: {movie_features.shape}&quot;)
 
@@ -1903,100 +1739,20 @@ kmeans_metrics = MovieClusterer.evaluate_clustering(movie_features, kmeans_label
 hier_metrics = MovieClusterer.evaluate_clustering(movie_features, hier_labels)
 
 print(f&quot;\nK-means: Silhouette={kmeans_metrics[&#x27;silhouette&#x27;]:.4f}&quot;)
-print(f&quot;Hierarchical: Silhouette={hier_metrics[&#x27;silhouette&#x27;]:.4f}&quot;)</pre></div>
+print(f&quot;Hierarchical: Silhouette={hier_metrics[&#x27;silhouette&#x27;]:.4f}&quot;)</div>
 <div class="cell markdown">
-<hr>
-<br>
-<h2>6. Discussion</h2>
-<br>
-<h3>Key Findings</h3>
-<br>
-<p>1. <strong>Best Overall<strong>: ALS and ItemKNN outperform traditional SVD</p>
-<p>   - ALS: Best rating prediction (MAE=0.90)</p>
-<p>   - ItemKNN: Best ranking quality (NDCG@10=0.30)</p>
-<br>
-<p>2. <strong>Graph-based Methods<strong>: PageRank performs competitively</p>
-<p>   - Better than SVD, worse than ALS/ItemKNN</p>
-<p>   - Interesting alternative approach</p>
-<br>
-<p>3. <strong>Hybrid Limitation<strong>: Simple averaging doesn't improve performance</p>
-<p>   - Dominated by weaker component (SVD)</p>
-<p>   - Needs smarter combination strategy</p>
-<br>
-<h3>Insights</h3>
-<br>
-<ul>
-<li><strong>Modern MF (ALS)<strong> handles sparse data better than SVD</li>
-<li><strong>ItemKNN<strong> excels at ranking relevant items</li>
-<li><strong>Graph methods<strong> provide complementary perspective</li>
-<li><strong>Clustering<strong> reveals genre-based groupings</li>
-</ul>
-<br>
-<hr>
+<hr><h2>6. Discussion</h2><h3>Key Findings</h3><p>1. <strong>Best Overall<strong>: ALS and ItemKNN outperform traditional SVD</p><p>   - ALS: Best rating prediction (MAE=0.90)</p><p>   - ItemKNN: Best ranking quality (NDCG@10=0.30)</p><p>2. <strong>Graph-based Methods<strong>: PageRank performs competitively</p><p>   - Better than SVD, worse than ALS/ItemKNN</p><p>   - Interesting alternative approach</p><p>3. <strong>Hybrid Limitation<strong>: Simple averaging doesn't improve performance</p><p>   - Dominated by weaker component (SVD)</p><p>   - Needs smarter combination strategy</p><h3>Insights</h3><p>- <strong>Modern MF (ALS)<strong> handles sparse data better than SVD</p><p>- <strong>ItemKNN<strong> excels at ranking relevant items</p><p>- <strong>Graph methods<strong> provide complementary perspective</p><p>- <strong>Clustering<strong> reveals genre-based groupings</p><hr>
 </div>
 <div class="cell markdown">
-<h2>7. Conclusion</h2>
-<br>
-<p>This analysis implemented and compared 5 recommendation algorithms on MovieLens 20M:</p>
-<br>
-<p><strong>Main Results:<strong></p>
-<ul>
-<li>ALS achieved lowest MAE (0.90) for rating prediction</li>
-<li>ItemKNN achieved highest NDCG@10 (0.30) for ranking</li>
-<li>Traditional SVD underperformed modern approaches</li>
-<li>Graph-based PageRank showed promising results</li>
-</ul>
-<br>
-<p><strong>Contributions:<strong></p>
-<ul>
-<li>Comprehensive comparison across multiple metrics</li>
-<li>Implementation of diverse algorithm types</li>
-<li>Analysis of clustering and dimensionality reduction</li>
-</ul>
-<br>
-<p><strong>Future Work:<strong></p>
-<ul>
-<li>Neural collaborative filtering (NCF, VAE)</li>
-<li>Context-aware recommendations</li>
-<li>Temporal dynamics modeling</li>
-<li>Scalability improvements</li>
-</ul>
-<br>
-<hr>
+<h2>7. Conclusion</h2><p>This analysis implemented and compared 5 recommendation algorithms on MovieLens 20M:</p><p><strong>Main Results:<strong></p><p>- ALS achieved lowest MAE (0.90) for rating prediction</p><p>- ItemKNN achieved highest NDCG@10 (0.30) for ranking</p><p>- Traditional SVD underperformed modern approaches</p><p>- Graph-based PageRank showed promising results</p><p><strong>Contributions:<strong></p><p>- Comprehensive comparison across multiple metrics</p><p>- Implementation of diverse algorithm types</p><p>- Analysis of clustering and dimensionality reduction</p><p><strong>Future Work:<strong></p><p>- Neural collaborative filtering (NCF, VAE)</p><p>- Context-aware recommendations</p><p>- Temporal dynamics modeling</p><p>- Scalability improvements</p><hr>
 </div>
 <div class="cell markdown">
-<h2>8. References</h2>
-<br>
-<p>1. Harper, F. M., & Konstan, J. A. (2015). The MovieLens Datasets: History and Context. *ACM TiiS*, 5(4), 1-19.</p>
-<br>
-<p>2. Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix Factorization Techniques for Recommender Systems. *Computer*, 42(8), 30-37.</p>
-<br>
-<p>3. Hu, Y., Koren, Y., & Volinsky, C. (2008). Collaborative Filtering for Implicit Feedback Datasets. *ICDM*.</p>
-<br>
-<p>4. Page, L., Brin, S., Motwani, R., & Winograd, T. (1999). The PageRank Citation Ranking: Bringing Order to the Web. Stanford InfoLab.</p>
-<br>
-<p>5. Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based Collaborative Filtering Recommendation Algorithms. *WWW*.</p>
-<br>
-<hr>
-<br>
-<h2>Appendix: Code Attribution</h2>
-<br>
-<p>This implementation uses:</p>
-<ul>
-<li>NumPy, Pandas for data manipulation</li>
-<li>Scikit-learn for SVD and clustering</li>
-<li>NetworkX for graph-based methods</li>
-<li>Matplotlib for visualization</li>
-</ul>
-<br>
-<p>Code developed with assistance from LLMs (Claude) and verified manually.</p>
+<h2>8. References</h2><p>1. Harper, F. M., & Konstan, J. A. (2015). The MovieLens Datasets: History and Context. *ACM TiiS*, 5(4), 1-19.</p><p>2. Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix Factorization Techniques for Recommender Systems. *Computer*, 42(8), 30-37.</p><p>3. Hu, Y., Koren, Y., & Volinsky, C. (2008). Collaborative Filtering for Implicit Feedback Datasets. *ICDM*.</p><p>4. Page, L., Brin, S., Motwani, R., & Winograd, T. (1999). The PageRank Citation Ranking: Bringing Order to the Web. Stanford InfoLab.</p><p>5. Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based Collaborative Filtering Recommendation Algorithms. *WWW*.</p><hr><h2>Appendix: Code Attribution</h2><p>This implementation uses:</p><p>- NumPy, Pandas for data manipulation</p><p>- Scikit-learn for SVD and clustering</p><p>- NetworkX for graph-based methods</p><p>- Matplotlib for visualization</p><p>Code developed with assistance from LLMs (Claude) and verified manually.</p>
 </div>
 
-<div class="cell markdown">
+<div class="cell markdown" style="text-align: center; color: #7f8c8d; margin-top: 40px;">
 <hr>
-<p style="text-align: center; color: #7f8c8d; margin-top: 40px;">
-Generated from Jupyter Notebook | DSA5101 Assignment
-</p>
+<p>Generated from Jupyter Notebook | DSA5101 Assignment | MovieLens 20M Analysis</p>
 </div>
 </body>
 </html>
