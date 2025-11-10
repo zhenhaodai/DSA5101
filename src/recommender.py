@@ -300,7 +300,7 @@ class PageRankRecommender:
 
         # 添加边（基于评分）
         edge_count = 0
-        for user in self.user_ids:
+        for user in tqdm(self.user_ids, desc="  - 添加图边"):
             for movie in self.movie_ids:
                 rating = user_movie_matrix.loc[user, movie]
                 if rating > 0:  # 只添加有评分的边
