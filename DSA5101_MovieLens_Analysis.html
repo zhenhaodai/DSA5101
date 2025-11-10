@@ -163,219 +163,92 @@
 <h3>Embedded Modules</h3>
 
 <p>All source code is self-contained in this notebook.</p></div>
-<div class="cell markdown-cell"><h3>4.1 Environment Setup</h3>
+<div class="cell markdown-cell"><h3>4.1 Environment and Data Setup</h3>
 
-<p>First, we verify that all required packages are installed and import necessary libraries.</p>
+<p><strong>Prerequisites:</strong></p>
+
+<p>Before running this notebook, ensure you have completed the setup steps:</p>
+
+<p>1. <strong>Install Python dependencies:</strong></p>
+<p>   ```bash</p>
+<p>   pip install -r requirements.txt</p>
+<p>   ```</p>
+
+<p>2. <strong>Download MovieLens 20M dataset:</strong></p>
+<p>   - <strong>Linux/Mac:</strong> `bash download_data.sh`</p>
+<p>   - <strong>Windows:</strong> `.\download_data.ps1`</p>
+
+<p>See `SETUP.md` for detailed instructions.</p>
+
+<hr>
+
+<p><strong>Directory Structure Check:</strong></p>
 </div>
 <div class="cell code-cell"><pre><code># ============================================================================
-# ENVIRONMENT SETUP AND DEPENDENCY CHECK
+# ENVIRONMENT AND DATA VERIFICATION
 # ============================================================================
 
-# Check and import required packages
+import os
 import sys
 
-def check_package(package_name, import_name=None):
-    &quot;&quot;&quot;Check if a package is installed and importable&quot;&quot;&quot;
-    if import_name is None:
-        import_name = package_name
+print(&quot;Checking setup...&quot;)
+print(&quot;=&quot; * 70)
 
-    try:
-        __import__(import_name)
-        print(f&quot;✓ {package_name} is installed&quot;)
-        return True
-    except ImportError:
-        print(f&quot;✗ {package_name} is NOT installed&quot;)
-        print(f&quot;  Install with: pip install {package_name}&quot;)
-        return False
+# 1. Check Python version
+print(f&quot;Python version: {sys.version.split()[0]}&quot;)
 
-print(&quot;Checking required packages...&quot;)
-print(&quot;=&quot; * 60)
-
+# 2. Check required packages
 required_packages = [
-    (&#39;numpy&#39;, &#39;numpy&#39;),
-    (&#39;pandas&#39;, &#39;pandas&#39;),
-    (&#39;scikit-learn&#39;, &#39;sklearn&#39;),
-    (&#39;matplotlib&#39;, &#39;matplotlib&#39;),
-    (&#39;seaborn&#39;, &#39;seaborn&#39;),
-    (&#39;networkx&#39;, &#39;networkx&#39;),
-    (&#39;scipy&#39;, &#39;scipy&#39;),
-    (&#39;tqdm&#39;, &#39;tqdm&#39;)
+    &#39;numpy&#39;, &#39;pandas&#39;, &#39;sklearn&#39;, &#39;matplotlib&#39;, 
+    &#39;seaborn&#39;, &#39;networkx&#39;, &#39;scipy&#39;, &#39;tqdm&#39;
 ]
 
-all_installed = True
-for package_name, import_name in required_packages:
-    if not check_package(package_name, import_name):
-        all_installed = False
-
-print(&quot;=&quot; * 60)
-
-if all_installed:
-    print(&quot;✓ All required packages are installed!&quot;)
-    print(&quot;\nPython version:&quot;, sys.version.split()[0])
-else:
-    print(&quot;\n⚠ Some packages are missing. Please install them before proceeding.&quot;)
-    print(&quot;\nQuick install command:&quot;)
-    print(&quot;pip install numpy pandas scikit-learn matplotlib seaborn networkx scipy tqdm&quot;)
-</code></pre></div>
-<div class="cell markdown-cell"><h3>4.2 Directory Setup</h3>
-
-<p>Create necessary directories for data, models, and figures.</p>
-</div>
-<div class="cell code-cell"><pre><code># ============================================================================
-# DIRECTORY STRUCTURE SETUP
-# ============================================================================
-
-import os
-
-# Create necessary directories
-directories = [&#39;./data&#39;, &#39;./models&#39;, &#39;./figures&#39;]
-
-print(&quot;Setting up directory structure...&quot;)
-print(&quot;=&quot; * 60)
-
-for directory in directories:
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-        print(f&quot;✓ Created directory: {directory}&quot;)
-    else:
-        print(f&quot;✓ Directory exists: {directory}&quot;)
-
-print(&quot;=&quot; * 60)
-print(&quot;✓ Directory structure ready!&quot;)
-</code></pre></div>
-<div class="cell markdown-cell"><h3>4.3 Data Download and Verification</h3>
-
-<p>Download the MovieLens 20M dataset if not already present. This is a one-time operation.</p>
-
-<p><strong>Dataset Information:</strong></p>
-<p>- <strong>Size:</strong> ~190 MB (compressed), ~500 MB (extracted)</p>
-<p>- <strong>Source:</strong> GroupLens Research @ University of Minnesota</p>
-<p>- <strong>Files:</strong> ratings.csv (20M ratings), movies.csv (27K movies)</p>
-<p>- <strong>License:</strong> Public dataset for research and education</p>
-</div>
-<div class="cell code-cell"><pre><code># ============================================================================
-# DATA DOWNLOAD AND VERIFICATION
-# ============================================================================
-
-import os
-import urllib.request
-import zipfile
-from pathlib import Path
-
-def download_movielens_20m():
-    &quot;&quot;&quot;Download and extract MovieLens 20M dataset&quot;&quot;&quot;
-
-    data_dir = &#39;./data&#39;
-    ml_dir = os.path.join(data_dir, &#39;ml-20m&#39;)
-    ratings_file = os.path.join(ml_dir, &#39;ratings.csv&#39;)
-    movies_file = os.path.join(ml_dir, &#39;movies.csv&#39;)
-
-    # Check if data already exists
-    if os.path.exists(ratings_file) and os.path.exists(movies_file):
-        print(&quot;✓ MovieLens 20M dataset already downloaded!&quot;)
-
-        # Show file sizes
-        ratings_size = os.path.getsize(ratings_file) / (1024 * 1024)
-        movies_size = os.path.getsize(movies_file) / (1024 * 1024)
-        print(f&quot;  - ratings.csv: {ratings_size:.1f} MB&quot;)
-        print(f&quot;  - movies.csv: {movies_size:.1f} MB&quot;)
-
-        return True
-
-    print(&quot;Downloading MovieLens 20M dataset...&quot;)
-    print(&quot;=&quot; * 60)
-    print(&quot;This may take a few minutes depending on your connection...&quot;)
-
-    # Download URL
-    url = &quot;https://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;
-    zip_path = os.path.join(data_dir, &#39;ml-20m.zip&#39;)
-
+missing_packages = []
+for pkg in required_packages:
     try:
-        # Download with progress
-        def reporthook(count, block_size, total_size):
-            percent = int(count * block_size * 100 / total_size)
-            if count % 50 == 0:  # Update every 50 blocks
-                print(f&quot;\rDownloading: {percent}%&quot;, end=&#39;&#39;, flush=True)
+        __import__(pkg)
+    except ImportError:
+        missing_packages.append(pkg)
 
-        print(f&quot;Downloading from: {url}&quot;)
-        urllib.request.urlretrieve(url, zip_path, reporthook)
-        print(&quot;\n✓ Download complete!&quot;)
+if missing_packages:
+    print(f&quot;\n✗ Missing packages: {&#39;, &#39;.join(missing_packages)}&quot;)
+    print(&quot;  Run: pip install -r requirements.txt&quot;)
+else:
+    print(&quot;✓ All required packages installed&quot;)
 
-        # Extract
-        print(&quot;\nExtracting files...&quot;)
-        with zipfile.ZipFile(zip_path, &#39;r&#39;) as zip_ref:
-            zip_ref.extractall(data_dir)
-        print(&quot;✓ Extraction complete!&quot;)
+# 3. Check directories
+print(&quot;\nDirectory structure:&quot;)
+dirs = [&#39;./data&#39;, &#39;./models&#39;, &#39;./figures&#39;]
+for d in dirs:
+    if os.path.exists(d):
+        print(f&quot;  ✓ {d}&quot;)
+    else:
+        os.makedirs(d, exist_ok=True)
+        print(f&quot;  ✓ {d} (created)&quot;)
 
-        # Clean up zip file
-        os.remove(zip_path)
-        print(&quot;✓ Cleaned up temporary files&quot;)
-
-        # Verify
-        if os.path.exists(ratings_file) and os.path.exists(movies_file):
-            print(&quot;=&quot; * 60)
-            print(&quot;✓ MovieLens 20M dataset ready!&quot;)
-
-            # Show file info
-            ratings_size = os.path.getsize(ratings_file) / (1024 * 1024)
-            movies_size = os.path.getsize(movies_file) / (1024 * 1024)
-            print(f&quot;  - ratings.csv: {ratings_size:.1f} MB&quot;)
-            print(f&quot;  - movies.csv: {movies_size:.1f} MB&quot;)
-
-            return True
-        else:
-            print(&quot;✗ Error: Data files not found after extraction&quot;)
-            return False
-
-    except Exception as e:
-        print(f&quot;\n✗ Error downloading data: {str(e)}&quot;)
-        print(&quot;\nManual download instructions:&quot;)
-        print(&quot;  1. Visit: https://grouplens.org/datasets/movielens/20m/&quot;)
-        print(&quot;  2. Download ml-20m.zip&quot;)
-        print(&quot;  3. Extract to ./data/ directory&quot;)
-        print(&quot;  4. Ensure ./data/ml-20m/ratings.csv exists&quot;)
-        return False
-
-# Run download
-print(&quot;Checking MovieLens 20M dataset...&quot;)
-print(&quot;=&quot; * 60)
-download_movielens_20m()
-</code></pre></div>
-<div class="cell markdown-cell"><h3>4.4 Data Preview</h3>
-
-<p>Quick preview of the dataset to ensure it loaded correctly.</p>
-</div>
-<div class="cell code-cell"><pre><code># ============================================================================
-# QUICK DATA PREVIEW
-# ============================================================================
-
-import pandas as pd
-import os
-
-# Check if data exists
+# 4. Check dataset
+print(&quot;\nDataset:&quot;)
 ratings_path = &#39;./data/ml-20m/ratings.csv&#39;
 movies_path = &#39;./data/ml-20m/movies.csv&#39;
 
 if os.path.exists(ratings_path) and os.path.exists(movies_path):
-    print(&quot;Loading data preview...&quot;)
-    print(&quot;=&quot; * 60)
-
-    # Load first few rows
-    ratings_preview = pd.read_csv(ratings_path, nrows=5)
-    movies_preview = pd.read_csv(movies_path, nrows=5)
-
-    print(&quot;\nRatings data (first 5 rows):&quot;)
-    print(ratings_preview)
-
-    print(&quot;\n&quot; + &quot;=&quot; * 60)
-    print(&quot;\nMovies data (first 5 rows):&quot;)
-    print(movies_preview)
-
-    print(&quot;\n&quot; + &quot;=&quot; * 60)
-    print(&quot;✓ Data preview complete!&quot;)
-    print(&quot;\nNote: Full dataset will be loaded with sampling in the next section.&quot;)
+    ratings_size = os.path.getsize(ratings_path) / (1024*1024)
+    movies_size = os.path.getsize(movies_path) / (1024*1024)
+    print(f&quot;  ✓ ratings.csv ({ratings_size:.1f} MB)&quot;)
+    print(f&quot;  ✓ movies.csv ({movies_size:.1f} MB)&quot;)
 else:
-    print(&quot;⚠ Data files not found. Please run the download cell above.&quot;)
+    print(&quot;  ✗ Dataset not found!&quot;)
+    print(&quot;  Run the download script:&quot;)
+    print(&quot;    - Linux/Mac: bash download_data.sh&quot;)
+    print(&quot;    - Windows:   .\download_data.ps1&quot;)
+
+print(&quot;=&quot; * 70)
+
+if not missing_packages and os.path.exists(ratings_path):
+    print(&quot;✓ Setup complete! Ready to proceed.&quot;)
+else:
+    print(&quot;⚠ Please complete setup before continuing.&quot;)
+    print(&quot;  See SETUP.md for instructions.&quot;)
 </code></pre></div>
 <div class="cell markdown-cell"><h4>Data Loader</h4>
 

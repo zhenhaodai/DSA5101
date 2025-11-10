@@ -1,22 +1,37 @@
 #!/bin/bash
-# MovieLens 20M 数据集下载脚本
+# MovieLens 20M Dataset Download Script
 
-echo "正在下载 MovieLens 20M 数据集..."
-echo "注意：由于数据集较大 (约 190MB)，下载可能需要一些时间"
+echo "=================================================="
+echo "  MovieLens 20M Dataset Downloader"
+echo "=================================================="
+echo ""
+echo "Downloading MovieLens 20M dataset..."
+echo "Note: Dataset size is ~190MB, download may take a few minutes"
+echo ""
 
-# 创建数据目录
+# Create data directory
 mkdir -p data
 cd data
 
-# 下载数据集
+# Download dataset
+echo "Downloading from GroupLens..."
 wget http://files.grouplens.org/datasets/movielens/ml-20m.zip
 
-# 解压
-echo "正在解压数据集..."
-unzip ml-20m.zip
+# Extract
+echo ""
+echo "Extracting dataset..."
+unzip -q ml-20m.zip
 
-# 清理
+# Cleanup
+echo "Cleaning up..."
 rm ml-20m.zip
 
-echo "数据下载完成！"
-echo "数据位置: ./data/ml-20m/"
+echo ""
+echo "=================================================="
+echo "  Download Complete!"
+echo "=================================================="
+echo "Dataset location: ./data/ml-20m/"
+echo "Files:"
+echo "  - ratings.csv (20M ratings)"
+echo "  - movies.csv (27K movies)"
+echo ""
