@@ -326,6 +326,7 @@ class PageRankRecommender:
                           exclude_rated: bool = True) -> List[Tuple[int, float]]:
         """
         为指定用户推荐电影（混合 PageRank 和协同过滤）
+        优化版本：使用向量化计算提升性能
 
         Args:
             user_id: 用户 ID
@@ -342,60 +343,47 @@ class PageRankRecommender:
         user_ratings = self.user_movie_matrix.loc[user_id]
 
         # 获取用户已评分的电影
-        rated_movies = user_ratings[user_ratings > 0].index.tolist()
+        rated_movies = user_ratings[user_ratings > 0]
 
-        # 1. 协同过滤分数：基于用户评分和电影相似度
-        cf_scores = {}
-        for movie in self.movie_ids:
-            if exclude_rated and movie in rated_movies:
-                continue
+        # 1. 协同过滤分数：使用矩阵运算优化
+        # 获取已评分电影的相似度矩阵切片和评分
+        rated_movie_ids = rated_movies.index
+        ratings_array = rated_movies.values
 
-            # 计算基于已评分电影的相似度加权分数
-            similarity_scores = []
-            for rated_movie in rated_movies:
-                sim = self.cosine_sim_df.loc[movie, rated_movie]
-                rating = user_ratings[rated_movie]
-                similarity_scores.append(sim * rating)
+        # 获取所有电影与已评分电影的相似度矩阵
+        # similarity_matrix: (所有电影 × 已评分电影)
+        similarity_matrix = self.cosine_sim_df.loc[:, rated_movie_ids].values
 
-            if similarity_scores:
-                cf_scores[movie] = np.mean(similarity_scores)
-            else:
-                cf_scores[movie] = 0
+        # 向量化计算CF分数: (相似度矩阵 × 评分向量) / 已评分电影数
+        cf_scores_array = np.dot(similarity_matrix, ratings_array) / len(rated_movies)
 
         # 2. 归一化协同过滤分数
-        if cf_scores:
-            max_cf = max(cf_scores.values()) if cf_scores.values() else 1
-            if max_cf > 0:
-                cf_scores = {k: v / max_cf for k, v in cf_scores.items()}
+        max_cf = np.max(cf_scores_array) if cf_scores_array.max() > 0 else 1
+        cf_scores_normalized = cf_scores_array / max_cf if max_cf > 0 else cf_scores_array
 
-        # 3. 归一化 PageRank 分数
+        # 3. 归一化 PageRank 分数 (转为数组)
         max_pr = max(self.pagerank_scores.values()) if self.pagerank_scores else 1
-        normalized_pr_scores = {
-            k: v / max_pr for k, v in self.pagerank_scores.items()
-        }
+        pr_scores_array = np.array([self.pagerank_scores.get(mid, 0) for mid in self.movie_ids])
+        pr_scores_normalized = pr_scores_array / max_pr if max_pr > 0 else pr_scores_array
 
-        # 4. 混合分数：结合协同过滤和 PageRank
-        combined_scores = {}
-        for movie in self.movie_ids:
-            if exclude_rated and movie in rated_movies:
-                continue
+        # 4. 混合分数：向量化计算
+        combined_scores_array = (
+            self.cf_weight * cf_scores_normalized +
+            (1 - self.cf_weight) * pr_scores_normalized
+        )
 
-            cf_score = cf_scores.get(movie, 0)
-            pr_score = normalized_pr_scores.get(movie, 0)
+        # 5. 排除已评分电影
+        if exclude_rated:
+            rated_movie_indices = [self.movie_ids.get_loc(mid) for mid in rated_movie_ids]
+            combined_scores_array[rated_movie_indices] = -1
 
-            # 加权组合
-            combined_score = (
-                self.cf_weight * cf_score +
-                (1 - self.cf_weight) * pr_score
-            )
-            combined_scores[movie] = combined_score
-
-        # 5. 排序并返回 top-N
-        top_movies = sorted(
-            combined_scores.items(),
-            key=lambda x: x[1],
-            reverse=True
-        )[:top_n]
+        # 6. 获取 top-N
+        top_indices = np.argsort(combined_scores_array)[::-1][:top_n]
+        top_movies = [
+            (self.movie_ids[idx], combined_scores_array[idx])
+            for idx in top_indices
+            if combined_scores_array[idx] > 0
+        ]
 
         return top_movies
 
