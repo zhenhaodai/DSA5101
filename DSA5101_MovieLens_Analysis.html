@@ -104,17 +104,210 @@
 <p><strong>Clustering:</strong> K-means • Hierarchical • PCA</p>
 
 <hr></div>
-<div class="cell markdown-cell"><h2>Contents</h2>
+<div class="cell markdown-cell"><h2>⚙️ One-Click Setup</h2>
 
-<p>1. <strong>Introduction</strong> - Motivation and objectives</p>
-<p>2. <strong>Dataset</strong> - MovieLens 20M description</p>
-<p>3. <strong>Methodology</strong> - Algorithm descriptions</p>
-<p>4. <strong>Implementation</strong> - Code and training</p>
-<p>5. <strong>Results</strong> - Performance comparison</p>
-<p>6. <strong>Discussion</strong> - Analysis and insights</p>
-<p>7. <strong>Conclusion</strong> - Key findings</p>
+<p>Run the cells below in order to automatically set up everything!</p>
 
-<hr></div>
+<h3>What will be installed/downloaded:</h3>
+<ul>
+<li>Python packages: numpy, pandas, scikit-learn, matplotlib, seaborn, networkx, scipy, tqdm</li>
+<li>MovieLens 20M dataset (~190MB download, ~500MB extracted)</li>
+</ul>
+
+<p><strong>Estimated time:</strong> 5-10 minutes depending on internet speed</p>
+
+<hr>
+</div>
+<div class="cell markdown-cell"><h3>Step 1: Install Python Dependencies</h3>
+
+<p>Run this cell to install all required packages:</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# INSTALL PYTHON DEPENDENCIES
+# ============================================================================
+
+import subprocess
+import sys
+
+print(&quot;Installing required Python packages...&quot;)
+print(&quot;=&quot; * 70)
+
+# List of required packages
+packages = [
+    &#39;numpy&gt;=1.21.0&#39;,
+    &#39;pandas&gt;=1.3.0&#39;,
+    &#39;scikit-learn&gt;=1.0.0&#39;,
+    &#39;matplotlib&gt;=3.4.0&#39;,
+    &#39;seaborn&gt;=0.11.0&#39;,
+    &#39;networkx&gt;=2.6.0&#39;,
+    &#39;scipy&gt;=1.7.0&#39;,
+    &#39;tqdm&gt;=4.62.0&#39;
+]
+
+# Install packages
+try:
+    for package in packages:
+        print(f&quot;Installing {package}...&quot;)
+        subprocess.check_call([sys.executable, &#39;-m&#39;, &#39;pip&#39;, &#39;install&#39;, &#39;-q&#39;, package])
+    
+    print(&quot;=&quot; * 70)
+    print(&quot;✓ All packages installed successfully!&quot;)
+    
+except Exception as e:
+    print(f&quot;✗ Error installing packages: {e}&quot;)
+    print(&quot;\nPlease install manually with:&quot;)
+    print(&quot;pip install numpy pandas scikit-learn matplotlib seaborn networkx scipy tqdm&quot;)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>Step 2: Download MovieLens 20M Dataset</h3>
+
+<p>Run this cell to automatically download and extract the dataset (~5 minutes):</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# DOWNLOAD MOVIELENS 20M DATASET
+# ============================================================================
+
+import os
+import urllib.request
+import zipfile
+from pathlib import Path
+
+def download_with_progress(url, output_path):
+    &quot;&quot;&quot;Download file with progress bar&quot;&quot;&quot;
+    def report_progress(block_num, block_size, total_size):
+        downloaded = block_num * block_size
+        percent = min(100, downloaded * 100 / total_size)
+        bar_length = 50
+        filled = int(bar_length * percent / 100)
+        bar = &#39;=&#39; * filled + &#39;-&#39; * (bar_length - filled)
+        print(f&#39;\rDownloading: [{bar}] {percent:.1f}%&#39;, end=&#39;&#39;, flush=True)
+    
+    urllib.request.urlretrieve(url, output_path, report_progress)
+    print()  # New line after progress bar
+
+print(&quot;MovieLens 20M Dataset Downloader&quot;)
+print(&quot;=&quot; * 70)
+
+# Check if already downloaded
+data_dir = Path(&#39;./data&#39;)
+ml_dir = data_dir / &#39;ml-20m&#39;
+ratings_file = ml_dir / &#39;ratings.csv&#39;
+movies_file = ml_dir / &#39;movies.csv&#39;
+
+if ratings_file.exists() and movies_file.exists():
+    print(&quot;✓ Dataset already exists!&quot;)
+    print(f&quot;  - ratings.csv: {ratings_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+    print(f&quot;  - movies.csv: {movies_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+else:
+    # Create data directory
+    data_dir.mkdir(exist_ok=True)
+    
+    # Download
+    url = &quot;http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;
+    zip_path = data_dir / &#39;ml-20m.zip&#39;
+    
+    print(f&quot;Downloading from: {url}&quot;)
+    print(&quot;Size: ~190 MB (this may take a few minutes)&quot;)
+    print()
+    
+    try:
+        download_with_progress(url, zip_path)
+        print(&quot;✓ Download complete!&quot;)
+        
+        # Extract
+        print(&quot;\nExtracting files...&quot;)
+        with zipfile.ZipFile(zip_path, &#39;r&#39;) as zip_ref:
+            zip_ref.extractall(data_dir)
+        print(&quot;✓ Extraction complete!&quot;)
+        
+        # Cleanup
+        zip_path.unlink()
+        print(&quot;✓ Cleaned up temporary files&quot;)
+        
+        # Verify
+        if ratings_file.exists() and movies_file.exists():
+            print(&quot;\n&quot; + &quot;=&quot; * 70)
+            print(&quot;✓ Dataset ready!&quot;)
+            print(f&quot;  - ratings.csv: {ratings_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+            print(f&quot;  - movies.csv: {movies_file.stat().st_size / (1024*1024):.1f} MB&quot;)
+        else:
+            print(&quot;\n✗ Error: Files not found after extraction&quot;)
+    
+    except Exception as e:
+        print(f&quot;\n✗ Error: {e}&quot;)
+        print(&quot;\nManual download instructions:&quot;)
+        print(&quot;1. Visit: https://grouplens.org/datasets/movielens/20m/&quot;)
+        print(&quot;2. Download ml-20m.zip&quot;)
+        print(&quot;3. Extract to ./data/ directory&quot;)
+
+print(&quot;=&quot; * 70)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>Step 3: Verify Setup</h3>
+
+<p>Run this cell to check that everything is ready:</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# VERIFY SETUP
+# ============================================================================
+
+import os
+import sys
+
+print(&quot;Verifying setup...&quot;)
+print(&quot;=&quot; * 70)
+
+# Check Python version
+print(f&quot;Python version: {sys.version.split()[0]}&quot;)
+
+# Check packages
+print(&quot;\nChecking packages:&quot;)
+required = [&#39;numpy&#39;, &#39;pandas&#39;, &#39;sklearn&#39;, &#39;matplotlib&#39;, &#39;seaborn&#39;, &#39;networkx&#39;, &#39;scipy&#39;, &#39;tqdm&#39;]
+missing = []
+
+for pkg in required:
+    try:
+        __import__(pkg)
+        print(f&quot;  ✓ {pkg}&quot;)
+    except ImportError:
+        print(f&quot;  ✗ {pkg} - NOT FOUND&quot;)
+        missing.append(pkg)
+
+# Check directories
+print(&quot;\nChecking directories:&quot;)
+for d in [&#39;./data&#39;, &#39;./models&#39;, &#39;./figures&#39;]:
+    if os.path.exists(d):
+        print(f&quot;  ✓ {d}&quot;)
+    else:
+        os.makedirs(d, exist_ok=True)
+        print(f&quot;  ✓ {d} (created)&quot;)
+
+# Check dataset
+print(&quot;\nChecking dataset:&quot;)
+ratings_path = &#39;./data/ml-20m/ratings.csv&#39;
+movies_path = &#39;./data/ml-20m/movies.csv&#39;
+
+if os.path.exists(ratings_path) and os.path.exists(movies_path):
+    ratings_size = os.path.getsize(ratings_path) / (1024*1024)
+    movies_size = os.path.getsize(movies_path) / (1024*1024)
+    print(f&quot;  ✓ ratings.csv ({ratings_size:.1f} MB)&quot;)
+    print(f&quot;  ✓ movies.csv ({movies_size:.1f} MB)&quot;)
+    dataset_ok = True
+else:
+    print(&quot;  ✗ Dataset not found - run Step 2 above&quot;)
+    dataset_ok = False
+
+print(&quot;=&quot; * 70)
+
+# Final status
+if not missing and dataset_ok:
+    print(&quot;\n✅ SETUP COMPLETE! You can proceed with the notebook.&quot;)
+else:
+    print(&quot;\n⚠️  Setup incomplete:&quot;)
+    if missing:
+        print(f&quot;   - Missing packages: {&#39;, &#39;.join(missing)}&quot;)
+    if not dataset_ok:
+        print(&quot;   - Dataset not downloaded&quot;)
+    print(&quot;\n   Please complete the steps above before continuing.&quot;)
+</code></pre></div>
 <div class="cell markdown-cell"><h2>1. Introduction</h2>
 
 <h3>Objectives</h3>
