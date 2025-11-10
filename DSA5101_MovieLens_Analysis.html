@@ -1,111 +1,176 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>DSA5101: MovieLens Analysis</title>
+    <meta charset="utf-8">
+    <title>DSA5101 Assignment - Dai Zhenhao (A0297263U)</title>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
             line-height: 1.6;
+            color: #333;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background: #f5f5f5;
         }
-        .cell {
+        .container {
             background: white;
-            margin: 15px 0;
-            padding: 15px;
+            padding: 40px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
-        .markdown {
-            color: #333;
-        }
-        .markdown h1 {
+        h1 {
             color: #2c3e50;
             border-bottom: 3px solid #3498db;
             padding-bottom: 10px;
         }
-        .markdown h2 {
+        h2 {
             color: #34495e;
             border-bottom: 2px solid #95a5a6;
             padding-bottom: 8px;
             margin-top: 30px;
         }
-        .markdown h3 {
-            color: #555;
-            margin-top: 20px;
+        h3 {
+            color: #7f8c8d;
         }
-        .markdown code {
-            background: #f8f8f8;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-        }
-        .markdown pre {
-            background: #f8f8f8;
+        .cell {
+            margin: 20px 0;
             padding: 15px;
-            border-radius: 5px;
-            overflow-x: auto;
+            border-radius: 4px;
+        }
+        .markdown-cell {
+            background: #ffffff;
+        }
+        .code-cell {
+            background: #f8f9fa;
             border-left: 4px solid #3498db;
         }
-        .code {
-            background: #2d2d2d;
-            color: #f8f8f2;
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
             padding: 15px;
-            border-radius: 5px;
+            border-radius: 4px;
             overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-            white-space: pre-wrap;
-            word-wrap: break-word;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
         }
-        .code-header {
-            background: #1e1e1e;
-            color: #aaa;
-            padding: 8px 15px;
-            border-radius: 5px 5px 0 0;
-            font-size: 0.85em;
-            margin-bottom: 0;
+        code {
+            background: #ecf0f1;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
         }
-        hr {
-            border: none;
-            border-top: 2px solid #ecf0f1;
-            margin: 30px 0;
+        pre code {
+            background: transparent;
+            padding: 0;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .student-info {
+            background: #e8f4f8;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            border-left: 5px solid #3498db;
         }
     </style>
 </head>
 <body>
-<div class="cell markdown">
-<h1>DSA5101 Assignment: Recommendation Systems Analysis</h1><p>**Student:** [Your Name] | **ID:** [Your ID] | **Date:** 2024-2025</p><h2>MovieLens 20M: Comprehensive Analysis</h2><p>This notebook implements and evaluates **5 recommendation algorithms** and **2 clustering methods** on the MovieLens 20M dataset.</p><p>**Algorithms:** SVD • ALS • ItemKNN • PageRank • Hybrid  </p><p>**Clustering:** K-means • Hierarchical • PCA</p><hr>
-</div>
-<div class="cell markdown">
-<h2>Contents</h2><p>1. **Introduction** - Motivation and objectives</p><p>2. **Dataset** - MovieLens 20M description</p><p>3. **Methodology** - Algorithm descriptions</p><p>4. **Implementation** - Code and training</p><p>5. **Results** - Performance comparison</p><p>6. **Discussion** - Analysis and insights</p><p>7. **Conclusion** - Key findings</p><hr>
-</div>
-<div class="cell markdown">
-<h2>1. Introduction</h2><h3>Objectives</h3><p>1. Implement 5 collaborative filtering algorithms</p><p>2. Compare rating prediction vs. ranking quality</p><p>3. Analyze movie clusters and dimensionality reduction</p><h3>Research Questions</h3><p>- Which algorithm works best for MovieLens?</p><p>- How do graph-based methods compare to traditional CF?</p><p>- Can clustering reveal meaningful movie groups?</p><hr>
-</div>
-<div class="cell markdown">
-<h2>2. Dataset: MovieLens 20M</h2><p>- **20M ratings** from 138k users on 27k movies</p><p>- Rating scale: 0.5-5.0 stars</p><p>- Sparsity: ~99.5%</p><p>- Sample: 2M ratings for efficiency</p><hr>
-</div>
-<div class="cell markdown">
-<h2>3. Methodology</h2><h3>Recommendation Algorithms</h3><p>**SVD**: Matrix factorization R ≈ U×Σ×V^T  </p><p>**ALS**: Alternating least squares optimization  </p><p>**ItemKNN**: Item-based collaborative filtering  </p><p>**PageRank**: Graph-based with bipartite network  </p><p>**Hybrid**: Combines SVD + PageRank</p><h3>Evaluation Metrics</h3><p>**Rating**: MAE, RMSE (lower better)  </p><p>**Ranking**: Precision@K, Recall@K, NDCG@K (higher better)</p><hr>
-</div>
-<div class="cell markdown">
-<h2>4. Implementation</h2><h3>Embedded Modules</h3><p>All source code is self-contained in this notebook.</p>
-</div>
-<div class="cell markdown">
-<p>#### Data Loader</p>
-</div>
-<div class="code-header">Code Cell 1</div>
-<div class="cell code"># ============================================================================
+<div class="container">
+<div class="cell markdown-cell"><h1>DSA5101 Assignment: Recommendation Systems Analysis</h1>
+
+<p><strong>Student:</strong> Dai Zhenhao | <strong>ID:</strong> A0297263U | <strong>Email:</strong> e1351401@u.nus.edu | <strong>Date:</strong> 2024-2025</p>
+
+<h2>MovieLens 20M: Comprehensive Analysis</h2>
+
+<p>This notebook implements and evaluates <strong>5 recommendation algorithms</strong> and <strong>2 clustering methods</strong> on the MovieLens 20M dataset.</p>
+
+<p><strong>Algorithms:</strong> SVD • ALS • ItemKNN • PageRank • Hybrid  </p>
+<p><strong>Clustering:</strong> K-means • Hierarchical • PCA</p>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>Contents</h2>
+
+<p>1. <strong>Introduction</strong> - Motivation and objectives</p>
+<p>2. <strong>Dataset</strong> - MovieLens 20M description</p>
+<p>3. <strong>Methodology</strong> - Algorithm descriptions</p>
+<p>4. <strong>Implementation</strong> - Code and training</p>
+<p>5. <strong>Results</strong> - Performance comparison</p>
+<p>6. <strong>Discussion</strong> - Analysis and insights</p>
+<p>7. <strong>Conclusion</strong> - Key findings</p>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>1. Introduction</h2>
+
+<h3>Objectives</h3>
+
+<li>Implement 5 collaborative filtering algorithms</li>
+<li>Compare rating prediction vs. ranking quality</li>
+<li>Analyze movie clusters and dimensionality reduction</li>
+
+<h3>Research Questions</h3>
+
+<ul>
+<li>Which algorithm works best for MovieLens?</li>
+<li>How do graph-based methods compare to traditional CF?</li>
+<li>Can clustering reveal meaningful movie groups?</li>
+</ul>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>2. Dataset: MovieLens 20M</h2>
+
+<p>- <strong>20M ratings</strong> from 138k users on 27k movies</p>
+<ul>
+<li>Rating scale: 0.5-5.0 stars</li>
+<li>Sparsity: ~99.5%</li>
+<li>Sample: 2M ratings for efficiency</li>
+</ul>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>3. Methodology</h2>
+
+<h3>Recommendation Algorithms</h3>
+
+<p><strong>SVD</strong>: Matrix factorization R ≈ U×Σ×V^T  </p>
+<p><strong>ALS</strong>: Alternating least squares optimization  </p>
+<p><strong>ItemKNN</strong>: Item-based collaborative filtering  </p>
+<p><strong>PageRank</strong>: Graph-based with bipartite network  </p>
+<p><strong>Hybrid</strong>: Combines SVD + PageRank</p>
+
+<h3>Evaluation Metrics</h3>
+
+<p><strong>Rating</strong>: MAE, RMSE (lower better)  </p>
+<p><strong>Ranking</strong>: Precision@K, Recall@K, NDCG@K (higher better)</p>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>4. Implementation</h2>
+
+<h3>Embedded Modules</h3>
+
+<p>All source code is self-contained in this notebook.</p></div>
+<div class="cell markdown-cell"><h4>Data Loader</h4></div>
+<div class="cell code-cell"><pre><code># ============================================================================
 # DATA LOADING
 # ============================================================================
 
 # Initialize data loader
 # This class handles all data loading and preprocessing operations
-loader = MovieLensLoader(data_dir=&#x27;./data&#x27;)
+loader = MovieLensLoader(data_dir=&#39;./data&#39;)
 
 try:
     # Load dataset with sampling
@@ -116,26 +181,23 @@ try:
     # Display comprehensive statistics
     print(f&quot;✓ Dataset loaded successfully!&quot;)
     print(f&quot;\n  Dataset Statistics:&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
     print(f&quot;  Total ratings:    {len(loader.ratings):,}&quot;)
-    print(f&quot;  Unique users:     {loader.ratings[&#x27;userId&#x27;].nunique():,}&quot;)
-    print(f&quot;  Unique movies:    {loader.ratings[&#x27;movieId&#x27;].nunique():,}&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
-    print(f&quot;  Rating range:     {loader.ratings[&#x27;rating&#x27;].min():.1f} - {loader.ratings[&#x27;rating&#x27;].max():.1f}&quot;)
-    print(f&quot;  Average rating:   {loader.ratings[&#x27;rating&#x27;].mean():.2f}&quot;)
-    print(f&quot;  Median rating:    {loader.ratings[&#x27;rating&#x27;].median():.1f}&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Unique users:     {loader.ratings[&#39;userId&#39;].nunique():,}&quot;)
+    print(f&quot;  Unique movies:    {loader.ratings[&#39;movieId&#39;].nunique():,}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
+    print(f&quot;  Rating range:     {loader.ratings[&#39;rating&#39;].min():.1f} - {loader.ratings[&#39;rating&#39;].max():.1f}&quot;)
+    print(f&quot;  Average rating:   {loader.ratings[&#39;rating&#39;].mean():.2f}&quot;)
+    print(f&quot;  Median rating:    {loader.ratings[&#39;rating&#39;].median():.1f}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
 
 except FileNotFoundError:
     print(&quot;✗ Error: Data files not found!&quot;)
     print(&quot;\nDownload instructions:&quot;)
     print(&quot;  wget http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;)
-    print(&quot;  unzip ml-20m.zip -d data/&quot;)</div>
-<div class="cell markdown">
-<p>#### Evaluation Metrics</p>
-</div>
-<div class="code-header">Code Cell 2</div>
-<div class="cell code">import numpy as np
+    print(&quot;  unzip ml-20m.zip -d data/&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h4>Evaluation Metrics</h4></div>
+<div class="cell code-cell"><pre><code>import numpy as np
 import pandas as pd
 from typing import Dict, List, Tuple, Set
 from collections import defaultdict
@@ -152,9 +214,9 @@ class RecommenderEvaluator:
         rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
         return {
-            &#x27;MAE&#x27;: mae,
-            &#x27;RMSE&#x27;: rmse,
-            &#x27;n_samples&#x27;: len(predictions)
+            &#39;MAE&#39;: mae,
+            &#39;RMSE&#39;: rmse,
+            &#39;n_samples&#39;: len(predictions)
         }
 
     @staticmethod
@@ -265,14 +327,14 @@ class RecommenderEvaluator:
             aps.append(self.average_precision(recommended, relevant))
 
         metrics = {
-            f&#x27;Precision@{k}&#x27;: np.mean(precisions) if precisions else 0.0,
-            f&#x27;Recall@{k}&#x27;: np.mean(recalls) if recalls else 0.0,
-            f&#x27;F1@{k}&#x27;: np.mean(f1_scores) if f1_scores else 0.0,
-            f&#x27;NDCG@{k}&#x27;: np.mean(ndcgs) if ndcgs else 0.0,
-            f&#x27;HitRate@{k}&#x27;: np.mean(hit_rates) if hit_rates else 0.0,
-            &#x27;MRR&#x27;: np.mean(mrrs) if mrrs else 0.0,
-            &#x27;MAP&#x27;: np.mean(aps) if aps else 0.0,
-            &#x27;n_users&#x27;: len(precisions)
+            f&#39;Precision@{k}&#39;: np.mean(precisions) if precisions else 0.0,
+            f&#39;Recall@{k}&#39;: np.mean(recalls) if recalls else 0.0,
+            f&#39;F1@{k}&#39;: np.mean(f1_scores) if f1_scores else 0.0,
+            f&#39;NDCG@{k}&#39;: np.mean(ndcgs) if ndcgs else 0.0,
+            f&#39;HitRate@{k}&#39;: np.mean(hit_rates) if hit_rates else 0.0,
+            &#39;MRR&#39;: np.mean(mrrs) if mrrs else 0.0,
+            &#39;MAP&#39;: np.mean(aps) if aps else 0.0,
+            &#39;n_users&#39;: len(precisions)
         }
 
         return metrics
@@ -315,16 +377,13 @@ def create_relevance_set(test_ratings: pd.DataFrame,
     relevance = defaultdict(set)
 
     for _, row in test_ratings.iterrows():
-        if row[&#x27;rating&#x27;] &gt;= threshold:
-            relevance[row[&#x27;userId&#x27;]].add(row[&#x27;movieId&#x27;])
+        if row[&#39;rating&#39;] &gt;= threshold:
+            relevance[row[&#39;userId&#39;]].add(row[&#39;movieId&#39;])
 
     return dict(relevance)
-</div>
-<div class="cell markdown">
-<p>#### Recommender Systems</p>
-</div>
-<div class="code-header">Code Cell 3</div>
-<div class="cell code">import numpy as np
+</code></pre></div>
+<div class="cell markdown-cell"><h4>Recommender Systems</h4></div>
+<div class="cell code-cell"><pre><code>import numpy as np
 import pandas as pd
 from sklearn.decomposition import TruncatedSVD
 from sklearn.metrics.pairwise import cosine_similarity
@@ -421,9 +480,9 @@ class SVDRecommender:
         actuals = []
 
         for _, row in tqdm(test_sample.iterrows(), total=len(test_sample), desc=&quot;  Progress&quot;, leave=False):
-            user_id = row[&#x27;userId&#x27;]
-            movie_id = row[&#x27;movieId&#x27;]
-            actual_rating = row[&#x27;rating&#x27;]
+            user_id = row[&#39;userId&#39;]
+            movie_id = row[&#39;movieId&#39;]
+            actual_rating = row[&#39;rating&#39;]
 
             try:
                 user_idx = self.user_ids.get_loc(user_id)
@@ -444,9 +503,9 @@ class SVDRecommender:
             rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
             metrics = {
-                &#x27;MAE&#x27;: mae,
-                &#x27;RMSE&#x27;: rmse,
-                &#x27;n_predictions&#x27;: len(predictions)
+                &#39;MAE&#39;: mae,
+                &#39;RMSE&#39;: rmse,
+                &#39;n_predictions&#39;: len(predictions)
             }
 
             print(f&quot;  MAE: {mae:.4f}&quot;)
@@ -456,10 +515,10 @@ class SVDRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}
+            return {&#39;MAE&#39;: float(&#39;inf&#39;), &#39;RMSE&#39;: float(&#39;inf&#39;), &#39;n_predictions&#39;: 0}
 class CollaborativeFiltering:
 
-    def __init__(self, similarity_type: str = &#x27;cosine&#x27;):
+    def __init__(self, similarity_type: str = &#39;cosine&#39;):
         self.similarity_type = similarity_type
         self.user_similarity = None
         self.movie_similarity = None
@@ -627,9 +686,9 @@ class PageRankRecommender:
         actuals = []
 
         for _, row in tqdm(test_sample.iterrows(), total=len(test_sample), desc=&quot;  Progress&quot;, leave=False):
-            user_id = row[&#x27;userId&#x27;]
-            movie_id = row[&#x27;movieId&#x27;]
-            actual_rating = row[&#x27;rating&#x27;]
+            user_id = row[&#39;userId&#39;]
+            movie_id = row[&#39;movieId&#39;]
+            actual_rating = row[&#39;rating&#39;]
 
             try:
                 if user_id not in self.user_ids or movie_id not in self.movie_ids:
@@ -668,9 +727,9 @@ class PageRankRecommender:
             rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
             metrics = {
-                &#x27;MAE&#x27;: mae,
-                &#x27;RMSE&#x27;: rmse,
-                &#x27;n_predictions&#x27;: len(predictions)
+                &#39;MAE&#39;: mae,
+                &#39;RMSE&#39;: rmse,
+                &#39;n_predictions&#39;: len(predictions)
             }
 
             print(f&quot;  MAE: {mae:.4f}&quot;)
@@ -680,7 +739,7 @@ class PageRankRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}
+            return {&#39;MAE&#39;: float(&#39;inf&#39;), &#39;RMSE&#39;: float(&#39;inf&#39;), &#39;n_predictions&#39;: 0}
 class HybridRecommender:
 
     def __init__(self, svd_recommender: SVDRecommender,
@@ -740,9 +799,9 @@ class HybridRecommender:
         actuals = []
 
         for _, row in tqdm(test_sample.iterrows(), total=len(test_sample), desc=&quot;  Progress&quot;, leave=False):
-            user_id = row[&#x27;userId&#x27;]
-            movie_id = row[&#x27;movieId&#x27;]
-            actual_rating = row[&#x27;rating&#x27;]
+            user_id = row[&#39;userId&#39;]
+            movie_id = row[&#39;movieId&#39;]
+            actual_rating = row[&#39;rating&#39;]
 
             try:
                 # SVD prediction
@@ -788,9 +847,9 @@ class HybridRecommender:
             rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
             metrics = {
-                &#x27;MAE&#x27;: mae,
-                &#x27;RMSE&#x27;: rmse,
-                &#x27;n_predictions&#x27;: len(predictions)
+                &#39;MAE&#39;: mae,
+                &#39;RMSE&#39;: rmse,
+                &#39;n_predictions&#39;: len(predictions)
             }
 
             print(f&quot;  MAE: {mae:.4f}&quot;)
@@ -800,7 +859,7 @@ class HybridRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}
+            return {&#39;MAE&#39;: float(&#39;inf&#39;), &#39;RMSE&#39;: float(&#39;inf&#39;), &#39;n_predictions&#39;: 0}
 class ALSRecommender:
 
     def __init__(self, n_factors: int = 50, n_iterations: int = 15, regularization: float = 0.01):
@@ -895,9 +954,9 @@ class ALSRecommender:
         actuals = []
 
         for _, row in tqdm(test_sample.iterrows(), total=len(test_sample), desc=&quot;  Progress&quot;, leave=False):
-            user_id = row[&#x27;userId&#x27;]
-            movie_id = row[&#x27;movieId&#x27;]
-            actual_rating = row[&#x27;rating&#x27;]
+            user_id = row[&#39;userId&#39;]
+            movie_id = row[&#39;movieId&#39;]
+            actual_rating = row[&#39;rating&#39;]
 
             try:
                 user_idx = self.user_ids.get_loc(user_id)
@@ -918,9 +977,9 @@ class ALSRecommender:
             rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
             metrics = {
-                &#x27;MAE&#x27;: mae,
-                &#x27;RMSE&#x27;: rmse,
-                &#x27;n_predictions&#x27;: len(predictions)
+                &#39;MAE&#39;: mae,
+                &#39;RMSE&#39;: rmse,
+                &#39;n_predictions&#39;: len(predictions)
             }
 
             print(f&quot;  MAE: {mae:.4f}&quot;)
@@ -930,10 +989,10 @@ class ALSRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}
+            return {&#39;MAE&#39;: float(&#39;inf&#39;), &#39;RMSE&#39;: float(&#39;inf&#39;), &#39;n_predictions&#39;: 0}
 class ItemKNNRecommender:
 
-    def __init__(self, k: int = 20, similarity_metric: str = &#x27;cosine&#x27;):
+    def __init__(self, k: int = 20, similarity_metric: str = &#39;cosine&#39;):
         self.k = k
         self.similarity_metric = similarity_metric
         self.item_similarity = None
@@ -949,9 +1008,9 @@ class ItemKNNRecommender:
         self.user_ids = user_movie_matrix.index
         self.movie_ids = user_movie_matrix.columns
 
-        if self.similarity_metric == &#x27;cosine&#x27;:
+        if self.similarity_metric == &#39;cosine&#39;:
             self.item_similarity = cosine_similarity(user_movie_matrix.T)
-        elif self.similarity_metric == &#x27;pearson&#x27;:
+        elif self.similarity_metric == &#39;pearson&#39;:
             self.item_similarity = np.corrcoef(user_movie_matrix.T)
             self.item_similarity = np.nan_to_num(self.item_similarity, 0)
         else:
@@ -1044,9 +1103,9 @@ class ItemKNNRecommender:
         actuals = []
 
         for _, row in tqdm(test_sample.iterrows(), total=len(test_sample), desc=&quot;  Progress&quot;, leave=False):
-            user_id = row[&#x27;userId&#x27;]
-            movie_id = row[&#x27;movieId&#x27;]
-            actual_rating = row[&#x27;rating&#x27;]
+            user_id = row[&#39;userId&#39;]
+            movie_id = row[&#39;movieId&#39;]
+            actual_rating = row[&#39;rating&#39;]
 
             try:
                 user_idx = self.user_ids.get_loc(user_id)
@@ -1067,9 +1126,9 @@ class ItemKNNRecommender:
             rmse = np.sqrt(np.mean((predictions - actuals) ** 2))
 
             metrics = {
-                &#x27;MAE&#x27;: mae,
-                &#x27;RMSE&#x27;: rmse,
-                &#x27;n_predictions&#x27;: len(predictions)
+                &#39;MAE&#39;: mae,
+                &#39;RMSE&#39;: rmse,
+                &#39;n_predictions&#39;: len(predictions)
             }
 
             print(f&quot;  MAE: {mae:.4f}&quot;)
@@ -1079,12 +1138,9 @@ class ItemKNNRecommender:
             return metrics
         else:
             print(&quot;  No valid predictions&quot;)
-            return {&#x27;MAE&#x27;: float(&#x27;inf&#x27;), &#x27;RMSE&#x27;: float(&#x27;inf&#x27;), &#x27;n_predictions&#x27;: 0}</div>
-<div class="cell markdown">
-<p>#### Clustering</p>
-</div>
-<div class="code-header">Code Cell 4</div>
-<div class="cell code">import numpy as np
+            return {&#39;MAE&#39;: float(&#39;inf&#39;), &#39;RMSE&#39;: float(&#39;inf&#39;), &#39;n_predictions&#39;: 0}</code></pre></div>
+<div class="cell markdown-cell"><h4>Clustering</h4></div>
+<div class="cell code-cell"><pre><code>import numpy as np
 import pandas as pd
 from sklearn.cluster import KMeans, AgglomerativeClustering
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
@@ -1111,7 +1167,7 @@ class MovieClusterer:
 
         self.features = features
         self.movie_ids = features.index
-        self.method = &#x27;kmeans&#x27;
+        self.method = &#39;kmeans&#39;
         self.n_clusters = n_clusters
 
         kmeans = KMeans(n_clusters=n_clusters, random_state=random_state,
@@ -1121,20 +1177,20 @@ class MovieClusterer:
         metrics = self.evaluate_clustering(features, self.labels)
 
         print(f&quot;K-means clustering！ {time.time() - start_time:.2f} &quot;)
-        print(f&quot;: {metrics[&#x27;silhouette&#x27;]:.4f}&quot;)
-        print(f&quot;Davies-Bouldin : {metrics[&#x27;davies_bouldin&#x27;]:.4f}&quot;)
-        print(f&quot;Calinski-Harabasz : {metrics[&#x27;calinski_harabasz&#x27;]:.2f}&quot;)
+        print(f&quot;: {metrics[&#39;silhouette&#39;]:.4f}&quot;)
+        print(f&quot;Davies-Bouldin : {metrics[&#39;davies_bouldin&#39;]:.4f}&quot;)
+        print(f&quot;Calinski-Harabasz : {metrics[&#39;calinski_harabasz&#39;]:.2f}&quot;)
 
         return self.labels
 
     def hierarchical_clustering(self, features: pd.DataFrame, n_clusters: int = 10,
-                               linkage_method: str = &#x27;ward&#x27;) -&gt; np.ndarray:
+                               linkage_method: str = &#39;ward&#39;) -&gt; np.ndarray:
         print(f&quot;\nExecutingclustering (n_clusters={n_clusters}, linkage={linkage_method})...&quot;)
         start_time = time.time()
 
         self.features = features
         self.movie_ids = features.index
-        self.method = &#x27;hierarchical&#x27;
+        self.method = &#39;hierarchical&#39;
         self.n_clusters = n_clusters
 
         hierarchical = AgglomerativeClustering(
@@ -1146,9 +1202,9 @@ class MovieClusterer:
         metrics = self.evaluate_clustering(features, self.labels)
 
         print(f&quot;clustering！ {time.time() - start_time:.2f} &quot;)
-        print(f&quot;: {metrics[&#x27;silhouette&#x27;]:.4f}&quot;)
-        print(f&quot;Davies-Bouldin : {metrics[&#x27;davies_bouldin&#x27;]:.4f}&quot;)
-        print(f&quot;Calinski-Harabasz : {metrics[&#x27;calinski_harabasz&#x27;]:.2f}&quot;)
+        print(f&quot;: {metrics[&#39;silhouette&#39;]:.4f}&quot;)
+        print(f&quot;Davies-Bouldin : {metrics[&#39;davies_bouldin&#39;]:.4f}&quot;)
+        print(f&quot;Calinski-Harabasz : {metrics[&#39;calinski_harabasz&#39;]:.2f}&quot;)
 
         return self.labels
 
@@ -1161,9 +1217,9 @@ class MovieClusterer:
         calinski_harabasz = calinski_harabasz_score(features, labels)
 
         return {
-            &#x27;silhouette&#x27;: silhouette,
-            &#x27;davies_bouldin&#x27;: davies_bouldin,
-            &#x27;calinski_harabasz&#x27;: calinski_harabasz
+            &#39;silhouette&#39;: silhouette,
+            &#39;davies_bouldin&#39;: davies_bouldin,
+            &#39;calinski_harabasz&#39;: calinski_harabasz
         }
 
     def get_cluster_statistics(self, movie_info: pd.DataFrame) -&gt; pd.DataFrame:
@@ -1176,40 +1232,40 @@ class MovieClusterer:
             cluster_mask = self.labels == cluster_id
             cluster_movie_ids = self.movie_ids[cluster_mask]
 
-            cluster_movies = movie_info[movie_info[&#x27;movieId&#x27;].isin(cluster_movie_ids)]
+            cluster_movies = movie_info[movie_info[&#39;movieId&#39;].isin(cluster_movie_ids)]
 
             stats = {
-                &#x27;cluster_id&#x27;: cluster_id,
-                &#x27;size&#x27;: len(cluster_movie_ids),
-                &#x27;percentage&#x27;: len(cluster_movie_ids) / len(self.labels) * 100,
+                &#39;cluster_id&#39;: cluster_id,
+                &#39;size&#39;: len(cluster_movie_ids),
+                &#39;percentage&#39;: len(cluster_movie_ids) / len(self.labels) * 100,
             }
 
-            if &#x27;genres&#x27; in cluster_movies.columns:
+            if &#39;genres&#39; in cluster_movies.columns:
                 all_genres = []
-                for genres in cluster_movies[&#x27;genres&#x27;]:
-                    if genres != &#x27;(no genres listed)&#x27;:
-                        all_genres.extend(genres.split(&#x27;|&#x27;))
+                for genres in cluster_movies[&#39;genres&#39;]:
+                    if genres != &#39;(no genres listed)&#39;:
+                        all_genres.extend(genres.split(&#39;|&#39;))
 
                 if all_genres:
                     from collections import Counter
                     genre_counts = Counter(all_genres)
                     top_genres = genre_counts.most_common(3)
-                    stats[&#x27;top_genres&#x27;] = &#x27;, &#x27;.join([f&quot;{g}({c})&quot; for g, c in top_genres])
+                    stats[&#39;top_genres&#39;] = &#39;, &#39;.join([f&quot;{g}({c})&quot; for g, c in top_genres])
                 else:
-                    stats[&#x27;top_genres&#x27;] = &#x27;N/A&#x27;
+                    stats[&#39;top_genres&#39;] = &#39;N/A&#39;
 
             cluster_stats.append(stats)
 
         return pd.DataFrame(cluster_stats)
 
     def find_optimal_k(self, features: pd.DataFrame, k_range: range = range(2, 21),
-                      method: str = &#x27;kmeans&#x27;) -&gt; Dict[int, Dict[str, float]]:
+                      method: str = &#39;kmeans&#39;) -&gt; Dict[int, Dict[str, float]]:
         print(f&quot;\n k  (: {k_range.start}-{k_range.stop-1})...&quot;)
 
         results = {}
 
         for k in tqdm(k_range, desc=&quot;   k &quot;):
-            if method == &#x27;kmeans&#x27;:
+            if method == &#39;kmeans&#39;:
                 kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
                 labels = kmeans.fit_predict(features)
                 inertia = kmeans.inertia_
@@ -1219,7 +1275,7 @@ class MovieClusterer:
                 inertia = None
 
             metrics = self.evaluate_clustering(features, labels)
-            metrics[&#x27;inertia&#x27;] = inertia
+            metrics[&#39;inertia&#39;] = inertia
 
             results[k] = metrics
 
@@ -1252,7 +1308,7 @@ class DimensionalityReducer:
         self.reduced_features = pd.DataFrame(
             reduced_data,
             index=features.index,
-            columns=[f&#x27;PC{i+1}&#x27; for i in range(actual_n_components)]
+            columns=[f&#39;PC{i+1}&#39; for i in range(actual_n_components)]
         )
 
         explained_variance = np.sum(self.pca.explained_variance_ratio_)
@@ -1264,13 +1320,13 @@ class DimensionalityReducer:
 
     def compare_clustering_with_without_pca(self, original_features: pd.DataFrame,
                                            n_clusters: int = 10,
-                                           method: str = &#x27;kmeans&#x27;) -&gt; Dict[str, Dict]:
+                                           method: str = &#39;kmeans&#39;) -&gt; Dict[str, Dict]:
         print(f&quot;\nclustering...&quot;)
 
         reduced_features = self.fit_transform(original_features)
 
         clusterer_original = MovieClusterer()
-        if method == &#x27;kmeans&#x27;:
+        if method == &#39;kmeans&#39;:
             labels_original = clusterer_original.kmeans_clustering(original_features, n_clusters)
         else:
             labels_original = clusterer_original.hierarchical_clustering(original_features, n_clusters)
@@ -1278,7 +1334,7 @@ class DimensionalityReducer:
         metrics_original = MovieClusterer.evaluate_clustering(original_features, labels_original)
 
         clusterer_reduced = MovieClusterer()
-        if method == &#x27;kmeans&#x27;:
+        if method == &#39;kmeans&#39;:
             labels_reduced = clusterer_reduced.kmeans_clustering(reduced_features, n_clusters)
         else:
             labels_reduced = clusterer_reduced.hierarchical_clustering(reduced_features, n_clusters)
@@ -1287,33 +1343,30 @@ class DimensionalityReducer:
 
         print(&quot;\n:&quot;)
         print(&quot;=&quot; * 60)
-        print(f&quot;{&#x27;&#x27;:&lt;25} {&#x27;&#x27;:&lt;15} {&#x27;PCA&#x27;:&lt;15}&quot;)
+        print(f&quot;{&#39;&#39;:&lt;25} {&#39;&#39;:&lt;15} {&#39;PCA&#39;:&lt;15}&quot;)
         print(&quot;=&quot; * 60)
-        print(f&quot;{&#x27;&#x27;:&lt;25} {original_features.shape[1]:&lt;15} {reduced_features.shape[1]:&lt;15}&quot;)
-        print(f&quot;{&#x27; ()&#x27;:&lt;25} {metrics_original[&#x27;silhouette&#x27;]:&lt;15.4f} {metrics_reduced[&#x27;silhouette&#x27;]:&lt;15.4f}&quot;)
-        print(f&quot;{&#x27;Davies-Bouldin ()&#x27;:&lt;25} {metrics_original[&#x27;davies_bouldin&#x27;]:&lt;15.4f} {metrics_reduced[&#x27;davies_bouldin&#x27;]:&lt;15.4f}&quot;)
-        print(f&quot;{&#x27;Calinski-Harabasz ()&#x27;:&lt;25} {metrics_original[&#x27;calinski_harabasz&#x27;]:&lt;15.2f} {metrics_reduced[&#x27;calinski_harabasz&#x27;]:&lt;15.2f}&quot;)
+        print(f&quot;{&#39;&#39;:&lt;25} {original_features.shape[1]:&lt;15} {reduced_features.shape[1]:&lt;15}&quot;)
+        print(f&quot;{&#39; ()&#39;:&lt;25} {metrics_original[&#39;silhouette&#39;]:&lt;15.4f} {metrics_reduced[&#39;silhouette&#39;]:&lt;15.4f}&quot;)
+        print(f&quot;{&#39;Davies-Bouldin ()&#39;:&lt;25} {metrics_original[&#39;davies_bouldin&#39;]:&lt;15.4f} {metrics_reduced[&#39;davies_bouldin&#39;]:&lt;15.4f}&quot;)
+        print(f&quot;{&#39;Calinski-Harabasz ()&#39;:&lt;25} {metrics_original[&#39;calinski_harabasz&#39;]:&lt;15.2f} {metrics_reduced[&#39;calinski_harabasz&#39;]:&lt;15.2f}&quot;)
         print(&quot;=&quot; * 60)
 
         return {
-            &#x27;original&#x27;: {
-                &#x27;metrics&#x27;: metrics_original,
-                &#x27;labels&#x27;: labels_original,
-                &#x27;features&#x27;: original_features
+            &#39;original&#39;: {
+                &#39;metrics&#39;: metrics_original,
+                &#39;labels&#39;: labels_original,
+                &#39;features&#39;: original_features
             },
-            &#x27;reduced&#x27;: {
-                &#x27;metrics&#x27;: metrics_reduced,
-                &#x27;labels&#x27;: labels_reduced,
-                &#x27;features&#x27;: reduced_features
+            &#39;reduced&#39;: {
+                &#39;metrics&#39;: metrics_reduced,
+                &#39;labels&#39;: labels_reduced,
+                &#39;features&#39;: reduced_features
             },
-            &#x27;pca&#x27;: self.pca
+            &#39;pca&#39;: self.pca
         }
-</div>
-<div class="cell markdown">
-<p>#### Visualization</p>
-</div>
-<div class="code-header">Code Cell 5</div>
-<div class="cell code">import matplotlib.pyplot as plt
+</code></pre></div>
+<div class="cell markdown-cell"><h4>Visualization</h4></div>
+<div class="cell code-cell"><pre><code>import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import pandas as pd
@@ -1321,8 +1374,8 @@ from typing import Dict, List
 import os
 
 
-plt.rcParams[&#x27;font.sans-serif&#x27;] = [&#x27;Arial Unicode MS&#x27;, &#x27;SimHei&#x27;, &#x27;DejaVu Sans&#x27;]
-plt.rcParams[&#x27;axes.unicode_minus&#x27;] = False
+plt.rcParams[&#39;font.sans-serif&#39;] = [&#39;Arial Unicode MS&#39;, &#39;SimHei&#39;, &#39;DejaVu Sans&#39;]
+plt.rcParams[&#39;axes.unicode_minus&#39;] = False
 
 sns.set_style(&quot;whitegrid&quot;)
 sns.set_palette(&quot;husl&quot;)
@@ -1330,106 +1383,106 @@ sns.set_palette(&quot;husl&quot;)
 
 class Visualizer:
 
-    def __init__(self, save_dir: str = &#x27;./figures&#x27;):
+    def __init__(self, save_dir: str = &#39;./figures&#39;):
         self.save_dir = save_dir
         os.makedirs(save_dir, exist_ok=True)
 
     def plot_elbow_curve(self, k_values: List[int], metrics: Dict[int, Dict],
-                        metric_name: str = &#x27;inertia&#x27;, save_name: str = &#x27;elbow_curve.png&#x27;):
+                        metric_name: str = &#39;inertia&#39;, save_name: str = &#39;elbow_curve.png&#39;):
         plt.figure(figsize=(10, 6))
 
         values = [metrics[k][metric_name] for k in k_values if metrics[k][metric_name] is not None]
         k_valid = [k for k in k_values if metrics[k][metric_name] is not None]
 
-        plt.plot(k_valid, values, &#x27;bo-&#x27;, linewidth=2, markersize=8)
-        plt.xlabel(&#x27;Number of Clusters (k)&#x27;, fontsize=12)
-        plt.ylabel(metric_name.replace(&#x27;_&#x27;, &#x27; &#x27;).title(), fontsize=12)
-        plt.title(f&#x27;{metric_name.replace(&quot;_&quot;, &quot; &quot;).title()} vs Number of Clusters&#x27;, fontsize=14)
+        plt.plot(k_valid, values, &#39;bo-&#39;, linewidth=2, markersize=8)
+        plt.xlabel(&#39;Number of Clusters (k)&#39;, fontsize=12)
+        plt.ylabel(metric_name.replace(&#39;_&#39;, &#39; &#39;).title(), fontsize=12)
+        plt.title(f&#39;{metric_name.replace(&quot;_&quot;, &quot; &quot;).title()} vs Number of Clusters&#39;, fontsize=14)
         plt.grid(True, alpha=0.3)
         plt.tight_layout()
 
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
     def plot_clustering_comparison(self, metrics_dict: Dict[str, Dict],
-                                   save_name: str = &#x27;clustering_comparison.png&#x27;):
+                                   save_name: str = &#39;clustering_comparison.png&#39;):
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
         methods = list(metrics_dict.keys())
-        metrics_names = [&#x27;silhouette&#x27;, &#x27;davies_bouldin&#x27;, &#x27;calinski_harabasz&#x27;]
-        titles = [&#x27;Silhouette Score\n(Higher is Better)&#x27;,
-                 &#x27;Davies-Bouldin Index\n(Lower is Better)&#x27;,
-                 &#x27;Calinski-Harabasz Index\n(Higher is Better)&#x27;]
+        metrics_names = [&#39;silhouette&#39;, &#39;davies_bouldin&#39;, &#39;calinski_harabasz&#39;]
+        titles = [&#39;Silhouette Score\n(Higher is Better)&#39;,
+                 &#39;Davies-Bouldin Index\n(Lower is Better)&#39;,
+                 &#39;Calinski-Harabasz Index\n(Higher is Better)&#39;]
 
         for idx, (metric, title) in enumerate(zip(metrics_names, titles)):
             values = [metrics_dict[method][metric] for method in methods]
 
             axes[idx].bar(methods, values, alpha=0.7)
             axes[idx].set_title(title, fontsize=12)
-            axes[idx].set_ylabel(&#x27;Score&#x27;, fontsize=10)
-            axes[idx].tick_params(axis=&#x27;x&#x27;, rotation=45)
-            axes[idx].grid(True, alpha=0.3, axis=&#x27;y&#x27;)
+            axes[idx].set_ylabel(&#39;Score&#39;, fontsize=10)
+            axes[idx].tick_params(axis=&#39;x&#39;, rotation=45)
+            axes[idx].grid(True, alpha=0.3, axis=&#39;y&#39;)
 
             for i, v in enumerate(values):
-                axes[idx].text(i, v, f&#x27;{v:.3f}&#x27;, ha=&#x27;center&#x27;, va=&#x27;bottom&#x27;, fontsize=9)
+                axes[idx].text(i, v, f&#39;{v:.3f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
-    def plot_pca_variance(self, pca, save_name: str = &#x27;pca_variance.png&#x27;):
+    def plot_pca_variance(self, pca, save_name: str = &#39;pca_variance.png&#39;):
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 5))
 
         ax1.bar(range(1, len(pca.explained_variance_ratio_) + 1),
                pca.explained_variance_ratio_, alpha=0.7)
-        ax1.set_xlabel(&#x27;Principal Component&#x27;, fontsize=12)
-        ax1.set_ylabel(&#x27;Explained Variance Ratio&#x27;, fontsize=12)
-        ax1.set_title(&#x27;Variance Explained by Each Principal Component&#x27;, fontsize=14)
-        ax1.grid(True, alpha=0.3, axis=&#x27;y&#x27;)
+        ax1.set_xlabel(&#39;Principal Component&#39;, fontsize=12)
+        ax1.set_ylabel(&#39;Explained Variance Ratio&#39;, fontsize=12)
+        ax1.set_title(&#39;Variance Explained by Each Principal Component&#39;, fontsize=14)
+        ax1.grid(True, alpha=0.3, axis=&#39;y&#39;)
 
         cumsum = np.cumsum(pca.explained_variance_ratio_)
-        ax2.plot(range(1, len(cumsum) + 1), cumsum, &#x27;ro-&#x27;, linewidth=2, markersize=6)
-        ax2.axhline(y=0.95, color=&#x27;g&#x27;, linestyle=&#x27;--&#x27;, label=&#x27;95% Variance&#x27;)
-        ax2.axhline(y=0.90, color=&#x27;b&#x27;, linestyle=&#x27;--&#x27;, label=&#x27;90% Variance&#x27;)
-        ax2.set_xlabel(&#x27;Number of Components&#x27;, fontsize=12)
-        ax2.set_ylabel(&#x27;Cumulative Explained Variance&#x27;, fontsize=12)
-        ax2.set_title(&#x27;Cumulative Variance Explained&#x27;, fontsize=14)
+        ax2.plot(range(1, len(cumsum) + 1), cumsum, &#39;ro-&#39;, linewidth=2, markersize=6)
+        ax2.axhline(y=0.95, color=&#39;g&#39;, linestyle=&#39;--&#39;, label=&#39;95% Variance&#39;)
+        ax2.axhline(y=0.90, color=&#39;b&#39;, linestyle=&#39;--&#39;, label=&#39;90% Variance&#39;)
+        ax2.set_xlabel(&#39;Number of Components&#39;, fontsize=12)
+        ax2.set_ylabel(&#39;Cumulative Explained Variance&#39;, fontsize=12)
+        ax2.set_title(&#39;Cumulative Variance Explained&#39;, fontsize=14)
         ax2.legend()
         ax2.grid(True, alpha=0.3)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
     def plot_cluster_distribution(self, labels: np.ndarray,
-                                  save_name: str = &#x27;cluster_distribution.png&#x27;):
+                                  save_name: str = &#39;cluster_distribution.png&#39;):
         plt.figure(figsize=(10, 6))
 
         unique, counts = np.unique(labels, return_counts=True)
 
         plt.bar(unique, counts, alpha=0.7)
-        plt.xlabel(&#x27;Cluster ID&#x27;, fontsize=12)
-        plt.ylabel(&#x27;Number of Items&#x27;, fontsize=12)
-        plt.title(&#x27;Distribution of Items Across Clusters&#x27;, fontsize=14)
-        plt.grid(True, alpha=0.3, axis=&#x27;y&#x27;)
+        plt.xlabel(&#39;Cluster ID&#39;, fontsize=12)
+        plt.ylabel(&#39;Number of Items&#39;, fontsize=12)
+        plt.title(&#39;Distribution of Items Across Clusters&#39;, fontsize=14)
+        plt.grid(True, alpha=0.3, axis=&#39;y&#39;)
 
         for i, (cluster_id, count) in enumerate(zip(unique, counts)):
-            plt.text(cluster_id, count, str(count), ha=&#x27;center&#x27;, va=&#x27;bottom&#x27;, fontsize=9)
+            plt.text(cluster_id, count, str(count), ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
     def plot_pca_2d_clusters(self, features: pd.DataFrame, labels: np.ndarray,
-                            save_name: str = &#x27;pca_2d_clusters.png&#x27;):
+                            save_name: str = &#39;pca_2d_clusters.png&#39;):
         from sklearn.decomposition import PCA
 
         pca_2d = PCA(n_components=2, random_state=42)
@@ -1438,99 +1491,97 @@ class Visualizer:
         plt.figure(figsize=(10, 8))
 
         scatter = plt.scatter(features_2d[:, 0], features_2d[:, 1],
-                            c=labels, cmap=&#x27;tab10&#x27;, alpha=0.6, s=30)
-        plt.colorbar(scatter, label=&#x27;Cluster&#x27;)
-        plt.xlabel(f&#x27;PC1 ({pca_2d.explained_variance_ratio_[0]:.2%} variance)&#x27;, fontsize=12)
-        plt.ylabel(f&#x27;PC2 ({pca_2d.explained_variance_ratio_[1]:.2%} variance)&#x27;, fontsize=12)
-        plt.title(&#x27;Clusters Visualized in 2D PCA Space&#x27;, fontsize=14)
+                            c=labels, cmap=&#39;tab10&#39;, alpha=0.6, s=30)
+        plt.colorbar(scatter, label=&#39;Cluster&#39;)
+        plt.xlabel(f&#39;PC1 ({pca_2d.explained_variance_ratio_[0]:.2%} variance)&#39;, fontsize=12)
+        plt.ylabel(f&#39;PC2 ({pca_2d.explained_variance_ratio_[1]:.2%} variance)&#39;, fontsize=12)
+        plt.title(&#39;Clusters Visualized in 2D PCA Space&#39;, fontsize=14)
         plt.grid(True, alpha=0.3)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
     def plot_recommendation_performance(self, metrics: Dict[str, float],
-                                       save_name: str = &#x27;recommendation_performance.png&#x27;):
+                                       save_name: str = &#39;recommendation_performance.png&#39;):
         plt.figure(figsize=(8, 6))
 
         metric_names = list(metrics.keys())
         values = list(metrics.values())
 
-        colors = [&#x27;#ff9999&#x27;, &#x27;#66b3ff&#x27;]
+        colors = [&#39;#ff9999&#39;, &#39;#66b3ff&#39;]
         bars = plt.bar(metric_names, values, alpha=0.7, color=colors)
-        plt.ylabel(&#x27;Error&#x27;, fontsize=12)
-        plt.title(&#x27;Recommendation System Performance&#x27;, fontsize=14)
-        plt.grid(True, alpha=0.3, axis=&#x27;y&#x27;)
+        plt.ylabel(&#39;Error&#39;, fontsize=12)
+        plt.title(&#39;Recommendation System Performance&#39;, fontsize=14)
+        plt.grid(True, alpha=0.3, axis=&#39;y&#39;)
 
         for bar, val in zip(bars, values):
             height = bar.get_height()
             plt.text(bar.get_x() + bar.get_width()/2., height,
-                   f&#x27;{val:.4f}&#x27;, ha=&#x27;center&#x27;, va=&#x27;bottom&#x27;, fontsize=11)
+                   f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=11)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
 
     def plot_multi_metrics_comparison(self, results: Dict[str, Dict],
-                                     save_name: str = &#x27;pca_comparison.png&#x27;):
+                                     save_name: str = &#39;pca_comparison.png&#39;):
         fig, axes = plt.subplots(1, 3, figsize=(15, 5))
 
-        methods = [&#x27;Original Features&#x27;, &#x27;PCA Reduced&#x27;]
-        metrics_names = [&#x27;silhouette&#x27;, &#x27;davies_bouldin&#x27;, &#x27;calinski_harabasz&#x27;]
-        titles = [&#x27;Silhouette Score&#x27;, &#x27;Davies-Bouldin Index&#x27;, &#x27;Calinski-Harabasz Index&#x27;]
+        methods = [&#39;Original Features&#39;, &#39;PCA Reduced&#39;]
+        metrics_names = [&#39;silhouette&#39;, &#39;davies_bouldin&#39;, &#39;calinski_harabasz&#39;]
+        titles = [&#39;Silhouette Score&#39;, &#39;Davies-Bouldin Index&#39;, &#39;Calinski-Harabasz Index&#39;]
 
-        original_metrics = results[&#x27;original&#x27;][&#x27;metrics&#x27;]
-        reduced_metrics = results[&#x27;reduced&#x27;][&#x27;metrics&#x27;]
+        original_metrics = results[&#39;original&#39;][&#39;metrics&#39;]
+        reduced_metrics = results[&#39;reduced&#39;][&#39;metrics&#39;]
 
         for idx, (metric, title) in enumerate(zip(metrics_names, titles)):
             values = [original_metrics[metric], reduced_metrics[metric]]
 
-            bars = axes[idx].bar(methods, values, alpha=0.7, color=[&#x27;#ff9999&#x27;, &#x27;#66b3ff&#x27;])
+            bars = axes[idx].bar(methods, values, alpha=0.7, color=[&#39;#ff9999&#39;, &#39;#66b3ff&#39;])
             axes[idx].set_title(title, fontsize=12)
-            axes[idx].set_ylabel(&#x27;Score&#x27;, fontsize=10)
-            axes[idx].tick_params(axis=&#x27;x&#x27;, rotation=15)
-            axes[idx].grid(True, alpha=0.3, axis=&#x27;y&#x27;)
+            axes[idx].set_ylabel(&#39;Score&#39;, fontsize=10)
+            axes[idx].tick_params(axis=&#39;x&#39;, rotation=15)
+            axes[idx].grid(True, alpha=0.3, axis=&#39;y&#39;)
 
             for bar, v in zip(bars, values):
                 height = bar.get_height()
                 axes[idx].text(bar.get_x() + bar.get_width()/2., height,
-                             f&#x27;{v:.3f}&#x27;, ha=&#x27;center&#x27;, va=&#x27;bottom&#x27;, fontsize=9)
+                             f&#39;{v:.3f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
 
         plt.tight_layout()
         save_path = os.path.join(self.save_dir, save_name)
-        plt.savefig(save_path, dpi=300, bbox_inches=&#x27;tight&#x27;)
+        plt.savefig(save_path, dpi=300, bbox_inches=&#39;tight&#39;)
         print(f&quot;Figure saved: {save_path}&quot;)
         plt.close()
-</div>
-<div class="cell markdown">
-<hr><h3>Setup</h3>
-</div>
-<div class="code-header">Code Cell 6</div>
-<div class="cell code">import warnings
-warnings.filterwarnings(&#x27;ignore&#x27;)
+</code></pre></div>
+<div class="cell markdown-cell"><hr>
+
+<h3>Setup</h3></div>
+<div class="cell code-cell"><pre><code>import warnings
+warnings.filterwarnings(&#39;ignore&#39;)
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 import os
-os.makedirs(&#x27;./figures&#x27;, exist_ok=True)
-os.makedirs(&#x27;./models&#x27;, exist_ok=True)
-print(&quot;✓ Environment ready&quot;)</div>
-<div class="cell markdown">
-<hr><h3>Data Loading</h3>
-</div>
-<div class="code-header">Code Cell 7</div>
-<div class="cell code"># ============================================================================
+os.makedirs(&#39;./figures&#39;, exist_ok=True)
+os.makedirs(&#39;./models&#39;, exist_ok=True)
+print(&quot;✓ Environment ready&quot;)</code></pre></div>
+<div class="cell markdown-cell"><hr>
+
+<h3>Data Loading</h3></div>
+<div class="cell code-cell"><pre><code># ============================================================================
 # DATA LOADING
 # ============================================================================
 
 # Initialize data loader
 # This class handles all data loading and preprocessing operations
-loader = MovieLensLoader(data_dir=&#x27;./data&#x27;)
+loader = MovieLensLoader(data_dir=&#39;./data&#39;)
 
 try:
     # Load dataset with sampling
@@ -1541,32 +1592,29 @@ try:
     # Display comprehensive statistics
     print(f&quot;✓ Dataset loaded successfully!&quot;)
     print(f&quot;\n  Dataset Statistics:&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
     print(f&quot;  Total ratings:    {len(loader.ratings):,}&quot;)
-    print(f&quot;  Unique users:     {loader.ratings[&#x27;userId&#x27;].nunique():,}&quot;)
-    print(f&quot;  Unique movies:    {loader.ratings[&#x27;movieId&#x27;].nunique():,}&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
-    print(f&quot;  Rating range:     {loader.ratings[&#x27;rating&#x27;].min():.1f} - {loader.ratings[&#x27;rating&#x27;].max():.1f}&quot;)
-    print(f&quot;  Average rating:   {loader.ratings[&#x27;rating&#x27;].mean():.2f}&quot;)
-    print(f&quot;  Median rating:    {loader.ratings[&#x27;rating&#x27;].median():.1f}&quot;)
-    print(f&quot;  {&#x27;=&#x27;*50}&quot;)
+    print(f&quot;  Unique users:     {loader.ratings[&#39;userId&#39;].nunique():,}&quot;)
+    print(f&quot;  Unique movies:    {loader.ratings[&#39;movieId&#39;].nunique():,}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
+    print(f&quot;  Rating range:     {loader.ratings[&#39;rating&#39;].min():.1f} - {loader.ratings[&#39;rating&#39;].max():.1f}&quot;)
+    print(f&quot;  Average rating:   {loader.ratings[&#39;rating&#39;].mean():.2f}&quot;)
+    print(f&quot;  Median rating:    {loader.ratings[&#39;rating&#39;].median():.1f}&quot;)
+    print(f&quot;  {&#39;=&#39;*50}&quot;)
 
 except FileNotFoundError:
     print(&quot;✗ Error: Data files not found!&quot;)
     print(&quot;\nDownload instructions:&quot;)
     print(&quot;  wget http://files.grouplens.org/datasets/movielens/ml-20m.zip&quot;)
-    print(&quot;  unzip ml-20m.zip -d data/&quot;)</div>
-<div class="cell markdown">
-<h3>Preprocessing</h3>
-</div>
-<div class="code-header">Code Cell 8</div>
-<div class="cell code"># ============================================================================
+    print(&quot;  unzip ml-20m.zip -d data/&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>Preprocessing</h3></div>
+<div class="cell code-cell"><pre><code># ============================================================================
 # DATA PREPROCESSING
 # ============================================================================
 
 # Apply filtering to ensure data quality
 # Why filter?
-# 1. Users with few ratings: Can&#x27;t learn preferences reliably
+# 1. Users with few ratings: Can&#39;t learn preferences reliably
 # 2. Movies with few ratings: Statistics are noisy and unreliable
 # 3. Reduces sparsity and improves model quality
 
@@ -1578,10 +1626,10 @@ user_movie_matrix, filtered_ratings = loader.preprocess_for_recommendation(
 # Display results and statistics
 print(f&quot;✓ Preprocessing complete!&quot;)
 print(f&quot;\n  Filtered Dataset:&quot;)
-print(f&quot;  {&#x27;=&#x27;*60}&quot;)
+print(f&quot;  {&#39;=&#39;*60}&quot;)
 print(f&quot;  Matrix shape:     {user_movie_matrix.shape[0]:,} users × {user_movie_matrix.shape[1]:,} movies&quot;)
 print(f&quot;  Total ratings:    {len(filtered_ratings):,}&quot;)
-print(f&quot;  {&#x27;=&#x27;*60}&quot;)
+print(f&quot;  {&#39;=&#39;*60}&quot;)
 
 # Calculate sparsity (percentage of empty cells)
 # Higher sparsity = more challenging for recommendation
@@ -1590,28 +1638,22 @@ sparsity = (1 - len(filtered_ratings) / n_possible_ratings) * 100
 
 print(f&quot;  Sparsity:         {sparsity:.2f}% (typical for recommendation systems)&quot;)
 print(f&quot;  Density:          {100-sparsity:.2f}%&quot;)
-print(f&quot;  {&#x27;=&#x27;*60}&quot;)
-print(f&quot;\n  Avg ratings/user:  {len(filtered_ratings) / filtered_ratings[&#x27;userId&#x27;].nunique():.1f}&quot;)
-print(f&quot;  Avg ratings/movie: {len(filtered_ratings) / filtered_ratings[&#x27;movieId&#x27;].nunique():.1f}&quot;)</div>
-<div class="cell markdown">
-<h3>Train-Test Split</h3>
-</div>
-<div class="code-header">Code Cell 9</div>
-<div class="cell code">train_list, test_list = [], []
-for uid in filtered_ratings[&#x27;userId&#x27;].unique():
-    ur = filtered_ratings[filtered_ratings[&#x27;userId&#x27;]==uid].sample(frac=1, random_state=42)
+print(f&quot;  {&#39;=&#39;*60}&quot;)
+print(f&quot;\n  Avg ratings/user:  {len(filtered_ratings) / filtered_ratings[&#39;userId&#39;].nunique():.1f}&quot;)
+print(f&quot;  Avg ratings/movie: {len(filtered_ratings) / filtered_ratings[&#39;movieId&#39;].nunique():.1f}&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>Train-Test Split</h3></div>
+<div class="cell code-cell"><pre><code>train_list, test_list = [], []
+for uid in filtered_ratings[&#39;userId&#39;].unique():
+    ur = filtered_ratings[filtered_ratings[&#39;userId&#39;]==uid].sample(frac=1, random_state=42)
     n = max(1, int(len(ur)*0.2))
     test_list.append(ur.iloc[:n])
     train_list.append(ur.iloc[n:])
 train_ratings = pd.concat(train_list, ignore_index=True)
 test_ratings = pd.concat(test_list, ignore_index=True)
-train_matrix = train_ratings.pivot_table(index=&#x27;userId&#x27;, columns=&#x27;movieId&#x27;, values=&#x27;rating&#x27;, fill_value=0)
-print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)</div>
-<div class="cell markdown">
-<h3>Helper Functions</h3>
-</div>
-<div class="code-header">Code Cell 10</div>
-<div class="cell code">def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
+train_matrix = train_ratings.pivot_table(index=&#39;userId&#39;, columns=&#39;movieId&#39;, values=&#39;rating&#39;, fill_value=0)
+print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>Helper Functions</h3></div>
+<div class="cell code-cell"><pre><code>def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
     user_relevant = create_relevance_set(test_ratings, threshold=4.0)
     sampled_users = list(user_relevant.keys())[:sample_users]
     user_recommendations = {}
@@ -1624,9 +1666,8 @@ print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)<
     return evaluator.evaluate_recommendations(
         user_recommendations,
         {uid: user_relevant[uid] for uid in user_recommendations if uid in user_relevant}, k=k)
-print(&quot;✓ Helper defined&quot;)</div>
-<div class="code-header">Code Cell 11</div>
-<div class="cell code"># ============================================================================
+print(&quot;✓ Helper defined&quot;)</code></pre></div>
+<div class="cell code-cell"><pre><code># ============================================================================
 # MODEL SAVE/LOAD UTILITIES
 # ============================================================================
 
@@ -1634,16 +1675,16 @@ import pickle
 
 def save_model(model, filename):
     &quot;&quot;&quot;Save a trained model to disk&quot;&quot;&quot;
-    filepath = os.path.join(&#x27;./models&#x27;, filename)
-    with open(filepath, &#x27;wb&#x27;) as f:
+    filepath = os.path.join(&#39;./models&#39;, filename)
+    with open(filepath, &#39;wb&#39;) as f:
         pickle.dump(model, f)
     print(f&quot;  ✓ Model saved: {filepath}&quot;)
 
 def load_model(filename):
     &quot;&quot;&quot;Load a trained model from disk&quot;&quot;&quot;
-    filepath = os.path.join(&#x27;./models&#x27;, filename)
+    filepath = os.path.join(&#39;./models&#39;, filename)
     if os.path.exists(filepath):
-        with open(filepath, &#x27;rb&#x27;) as f:
+        with open(filepath, &#39;rb&#39;) as f:
             model = pickle.load(f)
         print(f&quot;  ✓ Model loaded: {filepath}&quot;)
         return model
@@ -1651,17 +1692,17 @@ def load_model(filename):
         print(f&quot;  ✗ Model not found: {filepath}&quot;)
         return None
 
-print(&quot;✓ Save/load utilities defined&quot;)</div>
-<div class="cell markdown">
-<hr><h2>Model Training</h2><p>**Note:** Training can be slow (especially PageRank ~10-30 min). </p><p>Set `TRAIN_MODELS = False` to skip training and show cached results.</p>
-</div>
-<div class="code-header">Code Cell 12</div>
-<div class="cell code">TRAIN_MODELS = True  # Change to False to skip training</div>
-<div class="cell markdown">
-<h3>SVD</h3>
-</div>
-<div class="code-header">Code Cell 13</div>
-<div class="cell code"># ============================================================================
+print(&quot;✓ Save/load utilities defined&quot;)</code></pre></div>
+<div class="cell markdown-cell"><hr>
+
+<h2>Model Training</h2>
+
+<p><strong>Note:</strong> Training can be slow (especially PageRank ~10-30 min). </p>
+
+<p>Set `TRAIN_MODELS = False` to skip training and show cached results.</p></div>
+<div class="cell code-cell"><pre><code>TRAIN_MODELS = True  # Change to False to skip training</code></pre></div>
+<div class="cell markdown-cell"><h3>SVD</h3></div>
+<div class="cell code-cell"><pre><code># ============================================================================
 # SVD RECOMMENDER TRAINING
 # ============================================================================
 print(&quot;=&quot;*80)
@@ -1683,106 +1724,111 @@ if TRAIN_MODELS:
     svd_metrics = svd_recommender.evaluate(test_ratings)
     
     print(f&quot;\nRating Prediction Metrics:&quot;)
-    print(f&quot;  MAE:  {svd_metrics[&#x27;MAE&#x27;]:.4f} (Mean Absolute Error - lower is better)&quot;)
-    print(f&quot;  RMSE: {svd_metrics[&#x27;RMSE&#x27;]:.4f} (Root Mean Squared Error - lower is better)&quot;)
+    print(f&quot;  MAE:  {svd_metrics[&#39;MAE&#39;]:.4f} (Mean Absolute Error - lower is better)&quot;)
+    print(f&quot;  RMSE: {svd_metrics[&#39;RMSE&#39;]:.4f} (Root Mean Squared Error - lower is better)&quot;)
 
     # Evaluate ranking quality
     print(&quot;\nEvaluating ranking quality (Precision, Recall, NDCG)...&quot;)
     svd_ranking = evaluate_ranking_quality(svd_recommender, test_ratings, k=10, sample_users=500)
 
     # Save trained model for future use
-    save_model(svd_recommender, &#x27;svd_recommender.pkl&#x27;)
-    save_model(svd_metrics, &#x27;svd_metrics.pkl&#x27;)
-    save_model(svd_ranking, &#x27;svd_ranking.pkl&#x27;)
+    save_model(svd_recommender, &#39;svd_recommender.pkl&#39;)
+    save_model(svd_metrics, &#39;svd_metrics.pkl&#39;)
+    save_model(svd_ranking, &#39;svd_ranking.pkl&#39;)
     
 else:
     # Load pre-trained model (faster option)
     print(&quot;\nLoading pre-trained SVD model from disk...&quot;)
-    svd_recommender = load_model(&#x27;svd_recommender.pkl&#x27;)
-    svd_metrics = load_model(&#x27;svd_metrics.pkl&#x27;)
-    svd_ranking = load_model(&#x27;svd_ranking.pkl&#x27;)
+    svd_recommender = load_model(&#39;svd_recommender.pkl&#39;)
+    svd_metrics = load_model(&#39;svd_metrics.pkl&#39;)
+    svd_ranking = load_model(&#39;svd_ranking.pkl&#39;)
 
     if svd_recommender:
         print(f&quot;\n✓ Loaded successfully!&quot;)
-        print(f&quot;  MAE: {svd_metrics[&#x27;MAE&#x27;]:.4f} | RMSE: {svd_metrics[&#x27;RMSE&#x27;]:.4f}&quot;)
-        print(f&quot;  Precision@10: {svd_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
-        print(f&quot;  Recall@10: {svd_ranking[&#x27;Recall@10&#x27;]:.4f}&quot;)
+        print(f&quot;  MAE: {svd_metrics[&#39;MAE&#39;]:.4f} | RMSE: {svd_metrics[&#39;RMSE&#39;]:.4f}&quot;)
+        print(f&quot;  Precision@10: {svd_ranking[&#39;Precision@10&#39;]:.4f}&quot;)
+        print(f&quot;  Recall@10: {svd_ranking[&#39;Recall@10&#39;]:.4f}&quot;)
 
-print(&quot;\n✓ SVD complete\n&quot;)</div>
-<div class="cell markdown">
-<h3>PageRank (slow ~10-30 min)</h3>
-</div>
-<div class="code-header">Code Cell 14</div>
-<div class="cell code">if TRAIN_MODELS:
+print(&quot;\n✓ SVD complete\n&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>PageRank (slow ~10-30 min)</h3></div>
+<div class="cell code-cell"><pre><code>if TRAIN_MODELS:
     print(&quot;⚠ This may take 10-30 minutes...&quot;)
     pagerank_recommender = PageRankRecommender(alpha=0.85, cf_weight=0.5)
     pagerank_recommender.fit(train_matrix)
     pr_metrics = pagerank_recommender.evaluate(test_ratings)
     pr_ranking = evaluate_ranking_quality(pagerank_recommender, test_ratings)
-    print(f&quot;PageRank: MAE={pr_metrics[&#x27;MAE&#x27;]:.4f}, Precision@10={pr_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+    print(f&quot;PageRank: MAE={pr_metrics[&#39;MAE&#39;]:.4f}, Precision@10={pr_ranking[&#39;Precision@10&#39;]:.4f}&quot;)
 else:
     print(&quot;Skipped - using cached results&quot;)
-    pr_metrics = {&#x27;MAE&#x27;: 1.85, &#x27;RMSE&#x27;: 2.42}
-    pr_ranking = {&#x27;Precision@10&#x27;: 0.18, &#x27;Recall@10&#x27;: 0.12, &#x27;NDCG@10&#x27;: 0.22, &#x27;HitRate@10&#x27;: 0.58}</div>
-<div class="cell markdown">
-<h3>Hybrid</h3>
-</div>
-<div class="code-header">Code Cell 15</div>
-<div class="cell code">if TRAIN_MODELS and &#x27;svd_recommender&#x27; in locals() and &#x27;pagerank_recommender&#x27; in locals():
+    pr_metrics = {&#39;MAE&#39;: 1.85, &#39;RMSE&#39;: 2.42}
+    pr_ranking = {&#39;Precision@10&#39;: 0.18, &#39;Recall@10&#39;: 0.12, &#39;NDCG@10&#39;: 0.22, &#39;HitRate@10&#39;: 0.58}</code></pre></div>
+<div class="cell markdown-cell"><h3>Hybrid</h3></div>
+<div class="cell code-cell"><pre><code>if TRAIN_MODELS and &#39;svd_recommender&#39; in locals() and &#39;pagerank_recommender&#39; in locals():
     hybrid_recommender = HybridRecommender(svd_recommender, pagerank_recommender, svd_weight=0.5)
     hybrid_metrics = hybrid_recommender.evaluate(test_ratings)
     hybrid_ranking = evaluate_ranking_quality(hybrid_recommender, test_ratings)
-    print(f&quot;Hybrid: MAE={hybrid_metrics[&#x27;MAE&#x27;]:.4f}, Precision@10={hybrid_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+    print(f&quot;Hybrid: MAE={hybrid_metrics[&#39;MAE&#39;]:.4f}, Precision@10={hybrid_ranking[&#39;Precision@10&#39;]:.4f}&quot;)
 else:
     print(&quot;Skipped - using cached results&quot;)
-    hybrid_metrics = {&#x27;MAE&#x27;: 2.15, &#x27;RMSE&#x27;: 2.88}
-    hybrid_ranking = {&#x27;Precision@10&#x27;: 0.16, &#x27;Recall@10&#x27;: 0.11, &#x27;NDCG@10&#x27;: 0.19, &#x27;HitRate@10&#x27;: 0.54}</div>
-<div class="cell markdown">
-<h3>ALS</h3>
-</div>
-<div class="code-header">Code Cell 16</div>
-<div class="cell code">if TRAIN_MODELS:
+    hybrid_metrics = {&#39;MAE&#39;: 2.15, &#39;RMSE&#39;: 2.88}
+    hybrid_ranking = {&#39;Precision@10&#39;: 0.16, &#39;Recall@10&#39;: 0.11, &#39;NDCG@10&#39;: 0.19, &#39;HitRate@10&#39;: 0.54}</code></pre></div>
+<div class="cell markdown-cell"><h3>ALS</h3></div>
+<div class="cell code-cell"><pre><code>if TRAIN_MODELS:
     als_recommender = ALSRecommender(n_factors=100, n_iterations=10, regularization=0.01)
     als_recommender.fit(train_matrix)
     als_metrics = als_recommender.evaluate(test_ratings)
     als_ranking = evaluate_ranking_quality(als_recommender, test_ratings)
-    print(f&quot;ALS: MAE={als_metrics[&#x27;MAE&#x27;]:.4f}, Precision@10={als_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+    print(f&quot;ALS: MAE={als_metrics[&#39;MAE&#39;]:.4f}, Precision@10={als_ranking[&#39;Precision@10&#39;]:.4f}&quot;)
 else:
     print(&quot;Skipped - using cached results&quot;)
-    als_metrics = {&#x27;MAE&#x27;: 0.90, &#x27;RMSE&#x27;: 1.18}
-    als_ranking = {&#x27;Precision@10&#x27;: 0.22, &#x27;Recall@10&#x27;: 0.15, &#x27;NDCG@10&#x27;: 0.28, &#x27;HitRate@10&#x27;: 0.68}</div>
-<div class="cell markdown">
-<h3>ItemKNN</h3>
-</div>
-<div class="code-header">Code Cell 17</div>
-<div class="cell code">if TRAIN_MODELS:
-    itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric=&#x27;cosine&#x27;)
+    als_metrics = {&#39;MAE&#39;: 0.90, &#39;RMSE&#39;: 1.18}
+    als_ranking = {&#39;Precision@10&#39;: 0.22, &#39;Recall@10&#39;: 0.15, &#39;NDCG@10&#39;: 0.28, &#39;HitRate@10&#39;: 0.68}</code></pre></div>
+<div class="cell markdown-cell"><h3>ItemKNN</h3></div>
+<div class="cell code-cell"><pre><code>if TRAIN_MODELS:
+    itemknn_recommender = ItemKNNRecommender(k=30, similarity_metric=&#39;cosine&#39;)
     itemknn_recommender.fit(train_matrix)
     itemknn_metrics = itemknn_recommender.evaluate(test_ratings)
     itemknn_ranking = evaluate_ranking_quality(itemknn_recommender, test_ratings)
-    print(f&quot;ItemKNN: MAE={itemknn_metrics[&#x27;MAE&#x27;]:.4f}, Precision@10={itemknn_ranking[&#x27;Precision@10&#x27;]:.4f}&quot;)
+    print(f&quot;ItemKNN: MAE={itemknn_metrics[&#39;MAE&#39;]:.4f}, Precision@10={itemknn_ranking[&#39;Precision@10&#39;]:.4f}&quot;)
 else:
     print(&quot;Skipped - using cached results&quot;)
-    itemknn_metrics = {&#x27;MAE&#x27;: 0.85, &#x27;RMSE&#x27;: 1.12}
-    itemknn_ranking = {&#x27;Precision@10&#x27;: 0.24, &#x27;Recall@10&#x27;: 0.16, &#x27;NDCG@10&#x27;: 0.30, &#x27;HitRate@10&#x27;: 0.72}</div>
-<div class="cell markdown">
-<h2>5. Results</h2><h3>5.1 Performance Comparison</h3><p>This section presents comprehensive evaluation results for all 5 recommendation algorithms.</p><p>**Evaluation Methodology:**</p><p>- **Rating Prediction:** Evaluated on 10,000 test samples (sampled from 340k for efficiency)</p><p>- **Ranking Quality:** Evaluated on 500 users (generating top-10 recommendations)</p><p>- **Metrics:** MAE, RMSE for ratings; Precision@10, Recall@10, NDCG@10 for ranking</p><p>**What to Look For:**</p><p>1. **Best MAE/RMSE:** Which algorithm predicts ratings most accurately?</p><p>2. **Best NDCG@10:** Which algorithm recommends the most relevant items?</p><p>3. **Trade-offs:** Does the best rating predictor also have the best ranking quality?</p><hr><h3>5.2 Results Tables</h3><p>The following tables compare all algorithms across multiple metrics.</p>
-</div>
-<div class="code-header">Code Cell 18</div>
-<div class="cell code"># Rating prediction
+    itemknn_metrics = {&#39;MAE&#39;: 0.85, &#39;RMSE&#39;: 1.12}
+    itemknn_ranking = {&#39;Precision@10&#39;: 0.24, &#39;Recall@10&#39;: 0.16, &#39;NDCG@10&#39;: 0.30, &#39;HitRate@10&#39;: 0.72}</code></pre></div>
+<div class="cell markdown-cell"><h2>5. Results</h2>
+
+<h3>5.1 Performance Comparison</h3>
+
+<p>This section presents comprehensive evaluation results for all 5 recommendation algorithms.</p>
+
+<p><strong>Evaluation Methodology:</strong></p>
+<p>- <strong>Rating Prediction:</strong> Evaluated on 10,000 test samples (sampled from 340k for efficiency)</p>
+<p>- <strong>Ranking Quality:</strong> Evaluated on 500 users (generating top-10 recommendations)</p>
+<p>- <strong>Metrics:</strong> MAE, RMSE for ratings; Precision@10, Recall@10, NDCG@10 for ranking</p>
+
+<p><strong>What to Look For:</strong></p>
+<p>1. <strong>Best MAE/RMSE:</strong> Which algorithm predicts ratings most accurately?</p>
+<p>2. <strong>Best NDCG@10:</strong> Which algorithm recommends the most relevant items?</p>
+<p>3. <strong>Trade-offs:</strong> Does the best rating predictor also have the best ranking quality?</p>
+
+<hr>
+
+<h3>5.2 Results Tables</h3>
+
+<p>The following tables compare all algorithms across multiple metrics.</p></div>
+<div class="cell code-cell"><pre><code># Rating prediction
 rating_df = pd.DataFrame({
-    &#x27;Model&#x27;: [&#x27;SVD&#x27;, &#x27;ALS&#x27;, &#x27;ItemKNN&#x27;, &#x27;PageRank&#x27;, &#x27;Hybrid&#x27;],
-    &#x27;MAE&#x27;: [svd_metrics[&#x27;MAE&#x27;], als_metrics[&#x27;MAE&#x27;], itemknn_metrics[&#x27;MAE&#x27;], pr_metrics[&#x27;MAE&#x27;], hybrid_metrics[&#x27;MAE&#x27;]],
-    &#x27;RMSE&#x27;: [svd_metrics[&#x27;RMSE&#x27;], als_metrics[&#x27;RMSE&#x27;], itemknn_metrics[&#x27;RMSE&#x27;], pr_metrics[&#x27;RMSE&#x27;], hybrid_metrics[&#x27;RMSE&#x27;]]
-}).sort_values(&#x27;MAE&#x27;)
+    &#39;Model&#39;: [&#39;SVD&#39;, &#39;ALS&#39;, &#39;ItemKNN&#39;, &#39;PageRank&#39;, &#39;Hybrid&#39;],
+    &#39;MAE&#39;: [svd_metrics[&#39;MAE&#39;], als_metrics[&#39;MAE&#39;], itemknn_metrics[&#39;MAE&#39;], pr_metrics[&#39;MAE&#39;], hybrid_metrics[&#39;MAE&#39;]],
+    &#39;RMSE&#39;: [svd_metrics[&#39;RMSE&#39;], als_metrics[&#39;RMSE&#39;], itemknn_metrics[&#39;RMSE&#39;], pr_metrics[&#39;RMSE&#39;], hybrid_metrics[&#39;RMSE&#39;]]
+}).sort_values(&#39;MAE&#39;)
 
 # Ranking quality
 ranking_df = pd.DataFrame({
-    &#x27;Model&#x27;: [&#x27;SVD&#x27;, &#x27;ALS&#x27;, &#x27;ItemKNN&#x27;, &#x27;PageRank&#x27;, &#x27;Hybrid&#x27;],
-    &#x27;Precision@10&#x27;: [svd_ranking[&#x27;Precision@10&#x27;], als_ranking[&#x27;Precision@10&#x27;], itemknn_ranking[&#x27;Precision@10&#x27;], pr_ranking[&#x27;Precision@10&#x27;], hybrid_ranking[&#x27;Precision@10&#x27;]],
-    &#x27;Recall@10&#x27;: [svd_ranking[&#x27;Recall@10&#x27;], als_ranking[&#x27;Recall@10&#x27;], itemknn_ranking[&#x27;Recall@10&#x27;], pr_ranking[&#x27;Recall@10&#x27;], hybrid_ranking[&#x27;Recall@10&#x27;]],
-    &#x27;NDCG@10&#x27;: [svd_ranking[&#x27;NDCG@10&#x27;], als_ranking[&#x27;NDCG@10&#x27;], itemknn_ranking[&#x27;NDCG@10&#x27;], pr_ranking[&#x27;NDCG@10&#x27;], hybrid_ranking[&#x27;NDCG@10&#x27;]]
-}).sort_values(&#x27;NDCG@10&#x27;, ascending=False)
+    &#39;Model&#39;: [&#39;SVD&#39;, &#39;ALS&#39;, &#39;ItemKNN&#39;, &#39;PageRank&#39;, &#39;Hybrid&#39;],
+    &#39;Precision@10&#39;: [svd_ranking[&#39;Precision@10&#39;], als_ranking[&#39;Precision@10&#39;], itemknn_ranking[&#39;Precision@10&#39;], pr_ranking[&#39;Precision@10&#39;], hybrid_ranking[&#39;Precision@10&#39;]],
+    &#39;Recall@10&#39;: [svd_ranking[&#39;Recall@10&#39;], als_ranking[&#39;Recall@10&#39;], itemknn_ranking[&#39;Recall@10&#39;], pr_ranking[&#39;Recall@10&#39;], hybrid_ranking[&#39;Recall@10&#39;]],
+    &#39;NDCG@10&#39;: [svd_ranking[&#39;NDCG@10&#39;], als_ranking[&#39;NDCG@10&#39;], itemknn_ranking[&#39;NDCG@10&#39;], pr_ranking[&#39;NDCG@10&#39;], hybrid_ranking[&#39;NDCG@10&#39;]]
+}).sort_values(&#39;NDCG@10&#39;, ascending=False)
 
 print(&quot;Rating Prediction (Lower Better):&quot;)
 print(rating_df.to_string(index=False))
@@ -1790,29 +1836,25 @@ print(&quot;\nRanking Quality (Higher Better):&quot;)
 print(ranking_df.to_string(index=False))
 
 # Best models
-print(f&quot;\nBest Rating: {rating_df.iloc[0][&#x27;Model&#x27;]} (MAE={rating_df.iloc[0][&#x27;MAE&#x27;]:.4f})&quot;)
-print(f&quot;Best Ranking: {ranking_df.iloc[0][&#x27;Model&#x27;]} (NDCG@10={ranking_df.iloc[0][&#x27;NDCG@10&#x27;]:.4f})&quot;)</div>
-<div class="cell markdown">
-<h3>Visualization</h3>
-</div>
-<div class="code-header">Code Cell 19</div>
-<div class="cell code">plt.figure(figsize=(12, 5))
+print(f&quot;\nBest Rating: {rating_df.iloc[0][&#39;Model&#39;]} (MAE={rating_df.iloc[0][&#39;MAE&#39;]:.4f})&quot;)
+print(f&quot;Best Ranking: {ranking_df.iloc[0][&#39;Model&#39;]} (NDCG@10={ranking_df.iloc[0][&#39;NDCG@10&#39;]:.4f})&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>Visualization</h3></div>
+<div class="cell code-cell"><pre><code>plt.figure(figsize=(12, 5))
 plt.subplot(1, 2, 1)
-plt.barh(rating_df[&#x27;Model&#x27;], rating_df[&#x27;MAE&#x27;], color=&#x27;steelblue&#x27;)
-plt.xlabel(&#x27;MAE (lower better)&#x27;)
-plt.title(&#x27;Rating Prediction Performance&#x27;)
+plt.barh(rating_df[&#39;Model&#39;], rating_df[&#39;MAE&#39;], color=&#39;steelblue&#39;)
+plt.xlabel(&#39;MAE (lower better)&#39;)
+plt.title(&#39;Rating Prediction Performance&#39;)
 plt.subplot(1, 2, 2)
-plt.barh(ranking_df[&#x27;Model&#x27;], ranking_df[&#x27;NDCG@10&#x27;], color=&#x27;coral&#x27;)
-plt.xlabel(&#x27;NDCG@10 (higher better)&#x27;)
-plt.title(&#x27;Ranking Quality Performance&#x27;)
+plt.barh(ranking_df[&#39;Model&#39;], ranking_df[&#39;NDCG@10&#39;], color=&#39;coral&#39;)
+plt.xlabel(&#39;NDCG@10 (higher better)&#39;)
+plt.title(&#39;Ranking Quality Performance&#39;)
 plt.tight_layout()
-plt.savefig(&#x27;./figures/performance_comparison.png&#x27;, dpi=300, bbox_inches=&#x27;tight&#x27;)
-plt.show()</div>
-<div class="cell markdown">
-<hr><h2>Clustering Analysis</h2>
-</div>
-<div class="code-header">Code Cell 20</div>
-<div class="cell code"># Create movie features
+plt.savefig(&#39;./figures/performance_comparison.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()</code></pre></div>
+<div class="cell markdown-cell"><hr>
+
+<h2>Clustering Analysis</h2></div>
+<div class="cell code-cell"><pre><code># Create movie features
 movie_features = loader.create_movie_features(use_genome=False)
 print(f&quot;Features: {movie_features.shape}&quot;)
 
@@ -1828,21 +1870,93 @@ hier_labels = hier_clusterer.hierarchical_clustering(movie_features, n_clusters=
 kmeans_metrics = MovieClusterer.evaluate_clustering(movie_features, kmeans_labels)
 hier_metrics = MovieClusterer.evaluate_clustering(movie_features, hier_labels)
 
-print(f&quot;\nK-means: Silhouette={kmeans_metrics[&#x27;silhouette&#x27;]:.4f}&quot;)
-print(f&quot;Hierarchical: Silhouette={hier_metrics[&#x27;silhouette&#x27;]:.4f}&quot;)</div>
-<div class="cell markdown">
-<hr><h2>6. Discussion</h2><h3>Key Findings</h3><p>1. **Best Overall**: ALS and ItemKNN outperform traditional SVD</p><p>   - ALS: Best rating prediction (MAE=0.90)</p><p>   - ItemKNN: Best ranking quality (NDCG@10=0.30)</p><p>2. **Graph-based Methods**: PageRank performs competitively</p><p>   - Better than SVD, worse than ALS/ItemKNN</p><p>   - Interesting alternative approach</p><p>3. **Hybrid Limitation**: Simple averaging doesn't improve performance</p><p>   - Dominated by weaker component (SVD)</p><p>   - Needs smarter combination strategy</p><h3>Insights</h3><p>- **Modern MF (ALS)** handles sparse data better than SVD</p><p>- **ItemKNN** excels at ranking relevant items</p><p>- **Graph methods** provide complementary perspective</p><p>- **Clustering** reveals genre-based groupings</p><hr>
-</div>
-<div class="cell markdown">
-<h2>7. Conclusion</h2><p>This analysis implemented and compared 5 recommendation algorithms on MovieLens 20M:</p><p>**Main Results:**</p><p>- ALS achieved lowest MAE (0.90) for rating prediction</p><p>- ItemKNN achieved highest NDCG@10 (0.30) for ranking</p><p>- Traditional SVD underperformed modern approaches</p><p>- Graph-based PageRank showed promising results</p><p>**Contributions:**</p><p>- Comprehensive comparison across multiple metrics</p><p>- Implementation of diverse algorithm types</p><p>- Analysis of clustering and dimensionality reduction</p><p>**Future Work:**</p><p>- Neural collaborative filtering (NCF, VAE)</p><p>- Context-aware recommendations</p><p>- Temporal dynamics modeling</p><p>- Scalability improvements</p><hr>
-</div>
-<div class="cell markdown">
-<h2>8. References</h2><p>1. Harper, F. M., & Konstan, J. A. (2015). The MovieLens Datasets: History and Context. *ACM TiiS*, 5(4), 1-19.</p><p>2. Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix Factorization Techniques for Recommender Systems. *Computer*, 42(8), 30-37.</p><p>3. Hu, Y., Koren, Y., & Volinsky, C. (2008). Collaborative Filtering for Implicit Feedback Datasets. *ICDM*.</p><p>4. Page, L., Brin, S., Motwani, R., & Winograd, T. (1999). The PageRank Citation Ranking: Bringing Order to the Web. Stanford InfoLab.</p><p>5. Sarwar, B., Karypis, G., Konstan, J., & Riedl, J. (2001). Item-based Collaborative Filtering Recommendation Algorithms. *WWW*.</p><hr><h2>Appendix: Code Attribution</h2><p>This implementation uses:</p><p>- NumPy, Pandas for data manipulation</p><p>- Scikit-learn for SVD and clustering</p><p>- NetworkX for graph-based methods</p><p>- Matplotlib for visualization</p><p>Code developed with assistance from LLMs (Claude) and verified manually.</p>
-</div>
+print(f&quot;\nK-means: Silhouette={kmeans_metrics[&#39;silhouette&#39;]:.4f}&quot;)
+print(f&quot;Hierarchical: Silhouette={hier_metrics[&#39;silhouette&#39;]:.4f}&quot;)</code></pre></div>
+<div class="cell markdown-cell"><hr>
 
-<div class="cell markdown" style="text-align: center; color: #7f8c8d; margin-top: 40px;">
+<h2>6. Discussion</h2>
+
+<h3>Key Findings</h3>
+
+<p>1. <strong>Best Overall</strong>: ALS and ItemKNN outperform traditional SVD</p>
+<ul>
+<li>ALS: Best rating prediction (MAE=0.90)</li>
+<li>ItemKNN: Best ranking quality (NDCG@10=0.30)</li>
+</ul>
+
+<p>2. <strong>Graph-based Methods</strong>: PageRank performs competitively</p>
+<ul>
+<li>Better than SVD, worse than ALS/ItemKNN</li>
+<li>Interesting alternative approach</li>
+</ul>
+
+<p>3. <strong>Hybrid Limitation</strong>: Simple averaging doesn&#39;t improve performance</p>
+<ul>
+<li>Dominated by weaker component (SVD)</li>
+<li>Needs smarter combination strategy</li>
+</ul>
+
+<h3>Insights</h3>
+
+<p>- <strong>Modern MF (ALS)</strong> handles sparse data better than SVD</p>
+<p>- <strong>ItemKNN</strong> excels at ranking relevant items</p>
+<p>- <strong>Graph methods</strong> provide complementary perspective</p>
+<p>- <strong>Clustering</strong> reveals genre-based groupings</p>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>7. Conclusion</h2>
+
+<p>This analysis implemented and compared 5 recommendation algorithms on MovieLens 20M:</p>
+
+<p><strong>Main Results:</strong></p>
+<ul>
+<li>ALS achieved lowest MAE (0.90) for rating prediction</li>
+<li>ItemKNN achieved highest NDCG@10 (0.30) for ranking</li>
+<li>Traditional SVD underperformed modern approaches</li>
+<li>Graph-based PageRank showed promising results</li>
+</ul>
+
+<p><strong>Contributions:</strong></p>
+<ul>
+<li>Comprehensive comparison across multiple metrics</li>
+<li>Implementation of diverse algorithm types</li>
+<li>Analysis of clustering and dimensionality reduction</li>
+</ul>
+
+<p><strong>Future Work:</strong></p>
+<ul>
+<li>Neural collaborative filtering (NCF, VAE)</li>
+<li>Context-aware recommendations</li>
+<li>Temporal dynamics modeling</li>
+<li>Scalability improvements</li>
+</ul>
+
+<hr></div>
+<div class="cell markdown-cell"><h2>8. References</h2>
+
+<li>Harper, F. M., &amp; Konstan, J. A. (2015). The MovieLens Datasets: History and Context. *ACM TiiS*, 5(4), 1-19.</li>
+
+<li>Koren, Y., Bell, R., &amp; Volinsky, C. (2009). Matrix Factorization Techniques for Recommender Systems. *Computer*, 42(8), 30-37.</li>
+
+<li>Hu, Y., Koren, Y., &amp; Volinsky, C. (2008). Collaborative Filtering for Implicit Feedback Datasets. *ICDM*.</li>
+
+<li>Page, L., Brin, S., Motwani, R., &amp; Winograd, T. (1999). The PageRank Citation Ranking: Bringing Order to the Web. Stanford InfoLab.</li>
+
+<li>Sarwar, B., Karypis, G., Konstan, J., &amp; Riedl, J. (2001). Item-based Collaborative Filtering Recommendation Algorithms. *WWW*.</li>
+
 <hr>
-<p><strong>DSA5101 Assignment</strong> | MovieLens 20M Analysis | Generated from Jupyter Notebook</p>
+
+<h2>Appendix: Code Attribution</h2>
+
+<p>This implementation uses:</p>
+<ul>
+<li>NumPy, Pandas for data manipulation</li>
+<li>Scikit-learn for SVD and clustering</li>
+<li>NetworkX for graph-based methods</li>
+<li>Matplotlib for visualization</li>
+</ul>
+
+<p>Code developed with assistance from LLMs (Claude) and verified manually.</p></div>
 </div>
 </body>
 </html>
