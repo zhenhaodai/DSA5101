@@ -995,6 +995,186 @@ class Visualizer:
 <div class="cell markdown-cell"><hr>
 
 <h3>Setup</h3></div>
+<div class="cell markdown-cell"><h3>5.3 Comprehensive Performance Comparison</h3>
+
+<p>Multi-dimensional comparison of all recommendation algorithms across rating prediction and ranking quality metrics.</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# COMPREHENSIVE PERFORMANCE COMPARISON
+# ============================================================================
+fig = plt.figure(figsize=(18, 10))
+
+models = [&#39;SVD&#39;, &#39;ALS&#39;, &#39;ItemKNN&#39;, &#39;PageRank&#39;, &#39;Hybrid&#39;]
+colors = [&#39;#FF6B6B&#39;, &#39;#4ECDC4&#39;, &#39;#45B7D1&#39;, &#39;#FFA07A&#39;, &#39;#98D8C8&#39;]
+
+# Prepare metric arrays
+mae_vals = [svd_metrics[&#39;MAE&#39;], als_metrics[&#39;MAE&#39;], itemknn_metrics[&#39;MAE&#39;], pr_metrics[&#39;MAE&#39;], hybrid_metrics[&#39;MAE&#39;]]
+rmse_vals = [svd_metrics[&#39;RMSE&#39;], als_metrics[&#39;RMSE&#39;], itemknn_metrics[&#39;RMSE&#39;], pr_metrics[&#39;RMSE&#39;], hybrid_metrics[&#39;RMSE&#39;]]
+prec_vals = [svd_ranking[&#39;Precision@10&#39;], als_ranking[&#39;Precision@10&#39;], itemknn_ranking[&#39;Precision@10&#39;], pr_ranking[&#39;Precision@10&#39;], hybrid_ranking[&#39;Precision@10&#39;]]
+recall_vals = [svd_ranking[&#39;Recall@10&#39;], als_ranking[&#39;Recall@10&#39;], itemknn_ranking[&#39;Recall@10&#39;], pr_ranking[&#39;Recall@10&#39;], hybrid_ranking[&#39;Recall@10&#39;]]
+ndcg_vals = [svd_ranking[&#39;NDCG@10&#39;], als_ranking[&#39;NDCG@10&#39;], itemknn_ranking[&#39;NDCG@10&#39;], pr_ranking[&#39;NDCG@10&#39;], hybrid_ranking[&#39;NDCG@10&#39;]]
+hit_vals = [svd_ranking[&#39;HitRate@10&#39;], als_ranking[&#39;HitRate@10&#39;], itemknn_ranking[&#39;HitRate@10&#39;], pr_ranking[&#39;HitRate@10&#39;], hybrid_ranking[&#39;HitRate@10&#39;]]
+
+# 1. MAE
+ax1 = plt.subplot(2, 3, 1)
+bars = ax1.bar(models, mae_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax1.set_ylabel(&#39;MAE (lower better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax1.set_title(&#39;Mean Absolute Error&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax1.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, mae_vals):
+    ax1.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax1.tick_params(axis=&#39;x&#39;, rotation=45)
+
+# 2. RMSE
+ax2 = plt.subplot(2, 3, 2)
+bars = ax2.bar(models, rmse_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax2.set_ylabel(&#39;RMSE (lower better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax2.set_title(&#39;Root Mean Squared Error&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax2.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, rmse_vals):
+    ax2.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax2.tick_params(axis=&#39;x&#39;, rotation=45)
+
+# 3. Precision
+ax3 = plt.subplot(2, 3, 3)
+bars = ax3.bar(models, prec_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax3.set_ylabel(&#39;Precision@10 (higher better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax3.set_title(&#39;Precision at Top-10&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax3.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, prec_vals):
+    ax3.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax3.tick_params(axis=&#39;x&#39;, rotation=45)
+
+# 4. Recall
+ax4 = plt.subplot(2, 3, 4)
+bars = ax4.bar(models, recall_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax4.set_ylabel(&#39;Recall@10 (higher better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax4.set_title(&#39;Recall at Top-10&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax4.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, recall_vals):
+    ax4.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax4.tick_params(axis=&#39;x&#39;, rotation=45)
+
+# 5. NDCG
+ax5 = plt.subplot(2, 3, 5)
+bars = ax5.bar(models, ndcg_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax5.set_ylabel(&#39;NDCG@10 (higher better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax5.set_title(&#39;NDCG at Top-10&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax5.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, ndcg_vals):
+    ax5.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax5.tick_params(axis=&#39;x&#39;, rotation=45)
+
+# 6. Hit Rate
+ax6 = plt.subplot(2, 3, 6)
+bars = ax6.bar(models, hit_vals, color=colors, alpha=0.7, edgecolor=&#39;black&#39;)
+ax6.set_ylabel(&#39;Hit Rate@10 (higher better)&#39;, fontsize=11, fontweight=&#39;bold&#39;)
+ax6.set_title(&#39;Hit Rate at Top-10&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax6.grid(axis=&#39;y&#39;, alpha=0.3)
+for bar, val in zip(bars, hit_vals):
+    ax6.text(bar.get_x() + bar.get_width()/2, val, f&#39;{val:.4f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9, fontweight=&#39;bold&#39;)
+ax6.tick_params(axis=&#39;x&#39;, rotation=45)
+
+plt.tight_layout()
+plt.savefig(&#39;./figures/comprehensive_performance.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()
+print(&quot;✓ Comprehensive performance visualization complete&quot;)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>5.4 Radar Chart Analysis</h3>
+
+<p>Radar charts provide a holistic view of model performance across all metrics simultaneously.</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# RADAR CHART - MULTI-DIMENSIONAL COMPARISON
+# ============================================================================
+from math import pi
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 7), subplot_kw=dict(projection=&#39;polar&#39;))
+
+def normalize(values, inverse=False):
+    arr = np.array(values)
+    if inverse:
+        arr = 1 - (arr - arr.min()) / (arr.max() - arr.min())
+    else:
+        arr = (arr - arr.min()) / (arr.max() - arr.min())
+    return arr.tolist()
+
+# Left: All models
+categories = [&#39;MAE&#39;, &#39;RMSE&#39;, &#39;Prec@10&#39;, &#39;Rec@10&#39;, &#39;NDCG@10&#39;]
+N = len(categories)
+angles = [n / float(N) * 2 * pi for n in range(N)]
+angles += angles[:1]
+
+for i, (model, color) in enumerate(zip(models, colors)):
+    values = [normalize(mae_vals, inverse=True)[i], normalize(rmse_vals, inverse=True)[i], normalize(prec_vals)[i], normalize(recall_vals)[i], normalize(ndcg_vals)[i]]
+    values += values[:1]
+    ax1.plot(angles, values, &#39;o-&#39;, linewidth=2, label=model, color=color)
+    ax1.fill(angles, values, alpha=0.15, color=color)
+
+ax1.set_xticks(angles[:-1])
+ax1.set_xticklabels(categories, fontsize=10)
+ax1.set_ylim(0, 1)
+ax1.set_title(&#39;Overall Performance\n(normalized 0-1)&#39;, fontsize=13, fontweight=&#39;bold&#39;, pad=20)
+ax1.legend(loc=&#39;upper right&#39;, bbox_to_anchor=(1.3, 1.1), fontsize=10)
+ax1.grid(True)
+
+# Right: Top 3 models
+top3 = [&#39;ALS&#39;, &#39;ItemKNN&#39;, &#39;SVD&#39;]
+top3_colors = [colors[models.index(m)] for m in top3]
+categories2 = [&#39;MAE&#39;, &#39;RMSE&#39;, &#39;Prec@10&#39;, &#39;Rec@10&#39;, &#39;NDCG@10&#39;, &#39;Hit@10&#39;]
+N2 = len(categories2)
+angles2 = [n / float(N2) * 2 * pi for n in range(N2)]
+angles2 += angles2[:1]
+
+for model, color in zip(top3, top3_colors):
+    idx = models.index(model)
+    values = [normalize(mae_vals, inverse=True)[idx], normalize(rmse_vals, inverse=True)[idx], normalize(prec_vals)[idx], normalize(recall_vals)[idx], normalize(ndcg_vals)[idx], normalize(hit_vals)[idx]]
+    values += values[:1]
+    ax2.plot(angles2, values, &#39;o-&#39;, linewidth=2.5, label=model, color=color)
+    ax2.fill(angles2, values, alpha=0.2, color=color)
+
+ax2.set_xticks(angles2[:-1])
+ax2.set_xticklabels(categories2, fontsize=10)
+ax2.set_ylim(0, 1)
+ax2.set_title(&#39;Top 3 Models Detailed\n(normalized)&#39;, fontsize=13, fontweight=&#39;bold&#39;, pad=20)
+ax2.legend(loc=&#39;upper right&#39;, bbox_to_anchor=(1.3, 1.1), fontsize=11)
+ax2.grid(True)
+
+plt.tight_layout()
+plt.savefig(&#39;./figures/radar_comparison.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()
+print(&quot;✓ Radar chart complete&quot;)
+</code></pre></div>
+<div class="cell markdown-cell"><h3>5.5 Ranking Quality Heatmap</h3>
+
+<p>Heatmap visualization of ranking metrics highlighting best-performing models for each metric.</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# RANKING QUALITY HEATMAP
+# ============================================================================
+fig, ax = plt.subplots(figsize=(10, 6))
+
+# Prepare data
+heatmap_data = np.array([[svd_ranking[&#39;Precision@10&#39;], svd_ranking[&#39;Recall@10&#39;], svd_ranking[&#39;NDCG@10&#39;], svd_ranking[&#39;HitRate@10&#39;]], [als_ranking[&#39;Precision@10&#39;], als_ranking[&#39;Recall@10&#39;], als_ranking[&#39;NDCG@10&#39;], als_ranking[&#39;HitRate@10&#39;]], [itemknn_ranking[&#39;Precision@10&#39;], itemknn_ranking[&#39;Recall@10&#39;], itemknn_ranking[&#39;NDCG@10&#39;], itemknn_ranking[&#39;HitRate@10&#39;]], [pr_ranking[&#39;Precision@10&#39;], pr_ranking[&#39;Recall@10&#39;], pr_ranking[&#39;NDCG@10&#39;], pr_ranking[&#39;HitRate@10&#39;]], [hybrid_ranking[&#39;Precision@10&#39;], hybrid_ranking[&#39;Recall@10&#39;], hybrid_ranking[&#39;NDCG@10&#39;], hybrid_ranking[&#39;HitRate@10&#39;]]])
+
+im = ax.imshow(heatmap_data, cmap=&#39;YlOrRd&#39;, aspect=&#39;auto&#39;)
+ax.set_xticks(np.arange(4))
+ax.set_yticks(np.arange(5))
+ax.set_xticklabels([&#39;Precision@10&#39;, &#39;Recall@10&#39;, &#39;NDCG@10&#39;, &#39;Hit Rate@10&#39;], fontsize=11)
+ax.set_yticklabels(models, fontsize=11)
+plt.setp(ax.get_xticklabels(), rotation=45, ha=&quot;right&quot;, rotation_mode=&quot;anchor&quot;)
+
+for i in range(len(models)):
+    for j in range(4):
+        text = ax.text(j, i, f&#39;{heatmap_data[i, j]:.4f}&#39;, ha=&quot;center&quot;, va=&quot;center&quot;, color=&quot;black&quot; if heatmap_data[i, j] &lt; 0.5 else &quot;white&quot;, fontsize=10, fontweight=&#39;bold&#39;)
+
+ax.set_title(&quot;Ranking Quality Heatmap&quot;, fontsize=14, fontweight=&#39;bold&#39;, pad=15)
+fig.colorbar(im, ax=ax, label=&#39;Score&#39;)
+plt.tight_layout()
+plt.savefig(&#39;./figures/ranking_heatmap.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()
+print(&quot;✓ Ranking heatmap complete&quot;)
+</code></pre></div>
 <div class="cell code-cell"><pre><code>import warnings
 warnings.filterwarnings(&#39;ignore&#39;)
 import numpy as np
@@ -1086,6 +1266,136 @@ test_ratings = pd.concat(test_list, ignore_index=True)
 train_matrix = train_ratings.pivot_table(index=&#39;userId&#39;, columns=&#39;movieId&#39;, values=&#39;rating&#39;, fill_value=0)
 print(f&quot;Train: {len(train_ratings):,} | Test: {len(test_ratings):,}&quot;)</code></pre></div>
 <div class="cell markdown-cell"><h3>Helper Functions</h3></div>
+<div class="cell markdown-cell"><h3>Data Exploration Visualization</h3>
+
+<p>Comprehensive exploration of the filtered dataset including rating distributions, user/movie activity patterns, and sparsity analysis.</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# DATA EXPLORATION VISUALIZATION
+# ============================================================================
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+
+fig = plt.figure(figsize=(16, 12))
+
+# 1. Rating Distribution
+ax1 = plt.subplot(3, 3, 1)
+rating_counts = filtered_ratings[&#39;rating&#39;].value_counts().sort_index()
+ax1.bar(rating_counts.index, rating_counts.values, color=&#39;steelblue&#39;, alpha=0.7)
+ax1.set_xlabel(&#39;Rating&#39;, fontsize=11)
+ax1.set_ylabel(&#39;Count&#39;, fontsize=11)
+ax1.set_title(&#39;Rating Distribution&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax1.grid(axis=&#39;y&#39;, alpha=0.3)
+for i, v in enumerate(rating_counts.values):
+    ax1.text(rating_counts.index[i], v, f&#39;{v:,}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
+
+# 2. User Rating Count Distribution
+ax2 = plt.subplot(3, 3, 2)
+user_rating_counts = filtered_ratings.groupby(&#39;userId&#39;).size()
+ax2.hist(user_rating_counts, bins=50, color=&#39;coral&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax2.set_xlabel(&#39;Ratings per User&#39;, fontsize=11)
+ax2.set_ylabel(&#39;Number of Users&#39;, fontsize=11)
+ax2.set_title(&#39;User Activity Distribution&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax2.axvline(user_rating_counts.mean(), color=&#39;red&#39;, linestyle=&#39;--&#39;, label=f&#39;Mean: {user_rating_counts.mean():.1f}&#39;)
+ax2.axvline(user_rating_counts.median(), color=&#39;green&#39;, linestyle=&#39;--&#39;, label=f&#39;Median: {user_rating_counts.median():.1f}&#39;)
+ax2.legend(fontsize=9)
+ax2.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 3. Movie Rating Count Distribution
+ax3 = plt.subplot(3, 3, 3)
+movie_rating_counts = filtered_ratings.groupby(&#39;movieId&#39;).size()
+ax3.hist(movie_rating_counts, bins=50, color=&#39;lightgreen&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax3.set_xlabel(&#39;Ratings per Movie&#39;, fontsize=11)
+ax3.set_ylabel(&#39;Number of Movies&#39;, fontsize=11)
+ax3.set_title(&#39;Movie Popularity Distribution&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax3.axvline(movie_rating_counts.mean(), color=&#39;red&#39;, linestyle=&#39;--&#39;, label=f&#39;Mean: {movie_rating_counts.mean():.1f}&#39;)
+ax3.axvline(movie_rating_counts.median(), color=&#39;green&#39;, linestyle=&#39;--&#39;, label=f&#39;Median: {movie_rating_counts.median():.1f}&#39;)
+ax3.legend(fontsize=9)
+ax3.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 4. User Average Rating Distribution
+ax4 = plt.subplot(3, 3, 4)
+user_avg_ratings = filtered_ratings.groupby(&#39;userId&#39;)[&#39;rating&#39;].mean()
+ax4.hist(user_avg_ratings, bins=30, color=&#39;purple&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax4.set_xlabel(&#39;Average Rating&#39;, fontsize=11)
+ax4.set_ylabel(&#39;Number of Users&#39;, fontsize=11)
+ax4.set_title(&#39;User Average Rating&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax4.axvline(user_avg_ratings.mean(), color=&#39;red&#39;, linestyle=&#39;--&#39;, label=f&#39;Mean: {user_avg_ratings.mean():.2f}&#39;)
+ax4.legend(fontsize=9)
+ax4.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 5. Movie Average Rating Distribution
+ax5 = plt.subplot(3, 3, 5)
+movie_avg_ratings = filtered_ratings.groupby(&#39;movieId&#39;)[&#39;rating&#39;].mean()
+ax5.hist(movie_avg_ratings, bins=30, color=&#39;orange&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax5.set_xlabel(&#39;Average Rating&#39;, fontsize=11)
+ax5.set_ylabel(&#39;Number of Movies&#39;, fontsize=11)
+ax5.set_title(&#39;Movie Average Rating&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax5.axvline(movie_avg_ratings.mean(), color=&#39;red&#39;, linestyle=&#39;--&#39;, label=f&#39;Mean: {movie_avg_ratings.mean():.2f}&#39;)
+ax5.legend(fontsize=9)
+ax5.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 6. Sparsity Pattern (sample)
+ax6 = plt.subplot(3, 3, 6)
+n_sample = min(100, len(train_matrix))
+sample_users = np.random.choice(train_matrix.index, n_sample, replace=False)
+sample_movies = np.random.choice(train_matrix.columns, n_sample, replace=False)
+sample_matrix = train_matrix.loc[sample_users, sample_movies]
+ax6.spy(sample_matrix.values, markersize=1, color=&#39;steelblue&#39;)
+ax6.set_xlabel(&#39;Movies (sample)&#39;, fontsize=11)
+ax6.set_ylabel(&#39;Users (sample)&#39;, fontsize=11)
+ax6.set_title(&#39;Sparsity Pattern&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+
+# 7. Top 10 Most Rated Movies
+ax7 = plt.subplot(3, 3, 7)
+top_movies = movie_rating_counts.nlargest(10)
+ax7.barh(range(len(top_movies)), top_movies.values, color=&#39;teal&#39;, alpha=0.7)
+ax7.set_yticks(range(len(top_movies)))
+ax7.set_yticklabels([f&#39;Movie {mid}&#39; for mid in top_movies.index], fontsize=9)
+ax7.set_xlabel(&#39;Number of Ratings&#39;, fontsize=11)
+ax7.set_title(&#39;Top 10 Most Rated Movies&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax7.invert_yaxis()
+ax7.grid(axis=&#39;x&#39;, alpha=0.3)
+
+# 8. User Rating Consistency
+ax8 = plt.subplot(3, 3, 8)
+user_rating_std = filtered_ratings.groupby(&#39;userId&#39;)[&#39;rating&#39;].std()
+ax8.hist(user_rating_std, bins=30, color=&#39;pink&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax8.set_xlabel(&#39;Rating Std Dev&#39;, fontsize=11)
+ax8.set_ylabel(&#39;Number of Users&#39;, fontsize=11)
+ax8.set_title(&#39;User Rating Consistency&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax8.axvline(user_rating_std.mean(), color=&#39;red&#39;, linestyle=&#39;--&#39;, label=f&#39;Mean: {user_rating_std.mean():.2f}&#39;)
+ax8.legend(fontsize=9)
+ax8.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 9. Statistics Summary
+ax9 = plt.subplot(3, 3, 9)
+ax9.axis(&#39;off&#39;)
+stats_text = f&#39;&#39;&#39;Dataset Statistics
+
+Ratings: {len(filtered_ratings):,}
+Users: {filtered_ratings[&#39;userId&#39;].nunique():,}
+Movies: {filtered_ratings[&#39;movieId&#39;].nunique():,}
+
+Sparsity: {sparsity:.2f}%
+Density: {100-sparsity:.2f}%
+
+Rating Range: {filtered_ratings[&#39;rating&#39;].min():.1f}-{filtered_ratings[&#39;rating&#39;].max():.1f}
+Mean: {filtered_ratings[&#39;rating&#39;].mean():.3f}
+Median: {filtered_ratings[&#39;rating&#39;].median():.1f}
+Std: {filtered_ratings[&#39;rating&#39;].std():.3f}
+
+Avg Ratings/User: {len(filtered_ratings)/filtered_ratings[&#39;userId&#39;].nunique():.1f}
+Avg Ratings/Movie: {len(filtered_ratings)/filtered_ratings[&#39;movieId&#39;].nunique():.1f}
+&#39;&#39;&#39;
+ax9.text(0.1, 0.9, stats_text, fontsize=10, verticalalignment=&#39;top&#39;, family=&#39;monospace&#39;, bbox=dict(boxstyle=&#39;round&#39;, facecolor=&#39;wheat&#39;, alpha=0.5))
+
+plt.tight_layout()
+plt.savefig(&#39;./figures/data_exploration.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()
+print(&quot;✓ Data exploration complete&quot;)
+</code></pre></div>
 <div class="cell code-cell"><pre><code>def evaluate_ranking_quality(recommender, test_ratings, k=10, sample_users=500):
     user_relevant = create_relevance_set(test_ratings, threshold=4.0)
     sampled_users = list(user_relevant.keys())[:sample_users]
@@ -1305,6 +1615,97 @@ hier_metrics = MovieClusterer.evaluate_clustering(movie_features, hier_labels)
 
 print(f&quot;\nK-means: Silhouette={kmeans_metrics[&#39;silhouette&#39;]:.4f}&quot;)
 print(f&quot;Hierarchical: Silhouette={hier_metrics[&#39;silhouette&#39;]:.4f}&quot;)</code></pre></div>
+<div class="cell markdown-cell"><h3>Clustering Visualization</h3>
+
+<p>Comprehensive visualization of clustering results including distribution, PCA projections, and quality metrics.</p>
+</div>
+<div class="cell code-cell"><pre><code># ============================================================================
+# COMPREHENSIVE CLUSTERING VISUALIZATION
+# ============================================================================
+fig = plt.figure(figsize=(16, 10))
+
+# 1. K-means distribution
+ax1 = plt.subplot(2, 3, 1)
+unique_k, counts_k = np.unique(kmeans_labels, return_counts=True)
+ax1.bar(unique_k, counts_k, color=&#39;steelblue&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax1.set_xlabel(&#39;Cluster ID&#39;, fontsize=11)
+ax1.set_ylabel(&#39;Number of Movies&#39;, fontsize=11)
+ax1.set_title(&#39;K-means Cluster Distribution&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax1.grid(axis=&#39;y&#39;, alpha=0.3)
+for i, v in enumerate(counts_k):
+    ax1.text(unique_k[i], v, str(v), ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
+
+# 2. Hierarchical distribution
+ax2 = plt.subplot(2, 3, 2)
+unique_h, counts_h = np.unique(hier_labels, return_counts=True)
+ax2.bar(unique_h, counts_h, color=&#39;coral&#39;, alpha=0.7, edgecolor=&#39;black&#39;)
+ax2.set_xlabel(&#39;Cluster ID&#39;, fontsize=11)
+ax2.set_ylabel(&#39;Number of Movies&#39;, fontsize=11)
+ax2.set_title(&#39;Hierarchical Cluster Distribution&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax2.grid(axis=&#39;y&#39;, alpha=0.3)
+for i, v in enumerate(counts_h):
+    ax2.text(unique_h[i], v, str(v), ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=9)
+
+# 3. Cluster size comparison
+ax3 = plt.subplot(2, 3, 3)
+x = np.arange(len(unique_k))
+width = 0.35
+ax3.bar(x - width/2, counts_k, width, label=&#39;K-means&#39;, color=&#39;steelblue&#39;, alpha=0.7)
+ax3.bar(x + width/2, counts_h, width, label=&#39;Hierarchical&#39;, color=&#39;coral&#39;, alpha=0.7)
+ax3.set_xlabel(&#39;Cluster ID&#39;, fontsize=11)
+ax3.set_ylabel(&#39;Number of Movies&#39;, fontsize=11)
+ax3.set_title(&#39;Cluster Size Comparison&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax3.set_xticks(x)
+ax3.set_xticklabels(unique_k)
+ax3.legend(fontsize=10)
+ax3.grid(axis=&#39;y&#39;, alpha=0.3)
+
+# 4. 2D PCA - K-means
+ax4 = plt.subplot(2, 3, 4)
+from sklearn.decomposition import PCA
+pca_2d = PCA(n_components=2, random_state=42)
+features_2d = pca_2d.fit_transform(movie_features)
+scatter1 = ax4.scatter(features_2d[:, 0], features_2d[:, 1], c=kmeans_labels, cmap=&#39;tab10&#39;, alpha=0.6, s=20, edgecolors=&#39;black&#39;, linewidth=0.3)
+ax4.set_xlabel(f&#39;PC1 ({pca_2d.explained_variance_ratio_[0]:.1%})&#39;, fontsize=10)
+ax4.set_ylabel(f&#39;PC2 ({pca_2d.explained_variance_ratio_[1]:.1%})&#39;, fontsize=10)
+ax4.set_title(&#39;K-means Clusters (2D PCA)&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+plt.colorbar(scatter1, ax=ax4, label=&#39;Cluster&#39;)
+ax4.grid(alpha=0.3)
+
+# 5. 2D PCA - Hierarchical
+ax5 = plt.subplot(2, 3, 5)
+scatter2 = ax5.scatter(features_2d[:, 0], features_2d[:, 1], c=hier_labels, cmap=&#39;tab10&#39;, alpha=0.6, s=20, edgecolors=&#39;black&#39;, linewidth=0.3)
+ax5.set_xlabel(f&#39;PC1 ({pca_2d.explained_variance_ratio_[0]:.1%})&#39;, fontsize=10)
+ax5.set_ylabel(f&#39;PC2 ({pca_2d.explained_variance_ratio_[1]:.1%})&#39;, fontsize=10)
+ax5.set_title(&#39;Hierarchical Clusters (2D PCA)&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+plt.colorbar(scatter2, ax=ax5, label=&#39;Cluster&#39;)
+ax5.grid(alpha=0.3)
+
+# 6. Quality metrics comparison
+ax6 = plt.subplot(2, 3, 6)
+metrics_names = [&#39;Silhouette\n(higher)&#39;, &#39;Davies-Bouldin\n(lower)&#39;, &#39;Calinski-H\n(higher)&#39;]
+k_vals = [kmeans_metrics[&#39;silhouette&#39;], kmeans_metrics[&#39;davies_bouldin&#39;], kmeans_metrics[&#39;calinski_harabasz&#39;]/100]
+h_vals = [hier_metrics[&#39;silhouette&#39;], hier_metrics[&#39;davies_bouldin&#39;], hier_metrics[&#39;calinski_harabasz&#39;]/100]
+x = np.arange(len(metrics_names))
+width = 0.35
+bars1 = ax6.bar(x - width/2, k_vals, width, label=&#39;K-means&#39;, color=&#39;steelblue&#39;, alpha=0.7)
+bars2 = ax6.bar(x + width/2, h_vals, width, label=&#39;Hierarchical&#39;, color=&#39;coral&#39;, alpha=0.7)
+ax6.set_ylabel(&#39;Score&#39;, fontsize=11)
+ax6.set_title(&#39;Clustering Quality Metrics&#39;, fontsize=12, fontweight=&#39;bold&#39;)
+ax6.set_xticks(x)
+ax6.set_xticklabels(metrics_names, fontsize=9)
+ax6.legend(fontsize=10)
+ax6.grid(axis=&#39;y&#39;, alpha=0.3)
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        ax6.text(bar.get_x() + bar.get_width()/2., height, f&#39;{height:.3f}&#39;, ha=&#39;center&#39;, va=&#39;bottom&#39;, fontsize=8)
+
+plt.tight_layout()
+plt.savefig(&#39;./figures/clustering_comprehensive.png&#39;, dpi=300, bbox_inches=&#39;tight&#39;)
+plt.show()
+print(&quot;✓ Clustering visualization complete&quot;)
+</code></pre></div>
 <div class="cell markdown-cell"><hr>
 
 <h2>6. Discussion</h2>
