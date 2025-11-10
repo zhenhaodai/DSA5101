@@ -9,6 +9,7 @@ from sklearn.decomposition import PCA
 from scipy.cluster.hierarchy import dendrogram, linkage
 from typing import Dict, List, Tuple, Optional
 import time
+from tqdm import tqdm
 
 
 class MovieClusterer:
@@ -186,7 +187,7 @@ class MovieClusterer:
 
         results = {}
 
-        for k in k_range:
+        for k in tqdm(k_range, desc="  测试不同 k 值"):
             if method == 'kmeans':
                 kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
                 labels = kmeans.fit_predict(features)
@@ -200,9 +201,6 @@ class MovieClusterer:
             metrics['inertia'] = inertia
 
             results[k] = metrics
-
-            print(f"k={k}: Silhouette={metrics['silhouette']:.4f}, "
-                  f"DB={metrics['davies_bouldin']:.4f}")
 
         return results
 
